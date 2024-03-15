@@ -158,7 +158,6 @@ export default {
                 .then((response) => {
                     if (response.status == 200) {
                         book.value = response.data;
-                        console.log(response.data);
                     }
                 })
                 .catch((error) => {

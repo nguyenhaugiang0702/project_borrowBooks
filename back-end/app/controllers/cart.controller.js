@@ -3,26 +3,35 @@ const MongoDB = require("../utils/mongodb.util");
 const CartService = require("../services/cart.service");
 const BookService = require("../services/book.service");
 const PublisherService = require("../services/publisher.service");
-const jwt = require('jsonwebtoken');
-const { json } = require("express");
 const { ObjectId } = require("mongodb");
+const UserService = require("../services/user.service");
 
 exports.addtocart = async (req, res, next) => {
+    if (!req.body?.book_id || !req.body?.user_id) {
+        return res.status(400).json({ message: "Vui lòng cung cấp book_id và user_id" });
+    }
+    if (!/^[0-9a-fA-F]{24}$/.test(req.body.user_id)) {
+        return next(new ApiError(400, "user_id không hợp lệ"));
+    }
     try {
-        if (!req.body?.book_id || !req.body?.user_id) {
-            return res.status(400).json({ message: "Vui lòng cung cấp book_id và user_id" });
-        }
-        const quantity = req.body.quantity;
+        const cartService = new CartService(MongoDB.client);
+        const userService = new UserService(MongoDB.client);
+
         const user_id = new ObjectId(req.body.user_id);
         const book_id = new ObjectId(req.body.book_id);
-        const cartService = new CartService(MongoDB.client);
+        const quantity = req.body.quantity;
+
+        const userInfo = await userService.findById(user_id);
+        if(!userInfo){
+            return next(new ApiError(400, "user_id không hợp lệ"));
+        }
         let cart = await cartService.find({ user_id });
         if (!cart || cart.length === 0) {
             cart = await cartService.create(req.body);
         } else {
             const existingBook = cart[0].books.find(book => book.book_id.equals(book_id));
             if (existingBook) {
-                existingBook.quantity+=quantity;
+                existingBook.quantity += quantity;
             } else {
                 cart[0].books.push({ book_id, quantity });
             }
@@ -80,9 +89,9 @@ exports.getCart = async (req, res, next) => {
                     quantity: item.quantity,
                     book_name: book ? book.book_name : null,
                     book_image: book ? book.book_image : null,
-                    book_price: book ?  parseInt(book.book_price) : null,
-                    book_borrowedNumber: book ?  parseInt(book.book_borrowedNumber) : null,
-                    book_number: book ?  parseInt(book.book_number) : null,
+                    book_price: book ? parseInt(book.book_price) : null,
+                    book_borrowedNumber: book ? parseInt(book.book_borrowedNumber) : null,
+                    book_number: book ? parseInt(book.book_number) : null,
                     total_price: book ? total_price : null,
                 }
             })

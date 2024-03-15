@@ -41,15 +41,13 @@
                     </td>
                     <td>
                         <span class="price text-danger fw-bold">
-                            {{ book.book_price }}
+                            {{ formatPrice(book.book_price) }}
                         </span>
-                        <span class="text-danger fw-bold">VNĐ</span>
                     </td>
                     <td>
                         <span class="price text-danger fw-bold">
-                            {{ book.total_price }}
+                            {{ formatPrice(book.total_price) }}
                         </span>
-                        <span class="text-danger fw-bold">VNĐ</span>
                     </td>
                     <td><a href=""> <button @click="deleteBook(book.book_id, $event)" class="btn btn-danger"
                                 type="button">Xóa</button> </a></td>
@@ -236,6 +234,10 @@ export default {
             GotoCheckOut();
         }
 
+        const formatPrice = (price) => {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        }
+
         return {
             booksInCart,
             user_id,
@@ -250,6 +252,7 @@ export default {
             GotoCheckOut,
             deleteAllBook,
             handleCheckboxChange,
+            formatPrice
         }
     }
 }

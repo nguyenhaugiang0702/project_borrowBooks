@@ -43,7 +43,6 @@ exports.loginUser = async (req, res, next) => {
     try {
         const userService = new UserService(MongoDB.client);
         const user = await userService.authenticateUser(req.body);
-
         return res.json({
             message: 'Thanh cong',
             user,

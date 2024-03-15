@@ -33,11 +33,6 @@ const admin = [
         name: "admin-borrows",
         component: () => import("../pages/admin/borrows/index.vue"),
       },
-      {
-        path: "borrows/:id",
-        name: "admin-borrows-detail",
-        component: () => import("../pages/admin/borrows/detail.vue"),
-      },
     ],
   },
 ];

@@ -31,14 +31,12 @@ class UserService {
     async authenticateUser(payload) {
         const userData = this.extractUserData(payload);
         const user = await this.User.findOne({ user_name: userData.user_name });
-        
         if (!user) {
-            throw new Error('Không tìm thấy người dùng'); // or handle it as appropriate
+            throw new Error('Không tìm thấy người dùng'); 
         }
         const isPasswordValid = await bcrypt.compare(userData.user_password, user.user_password);
         if (isPasswordValid) {
             return user;
-            // console.log('dang nhap thanh cong');
         } else {
             throw new Error('Mật khẩu không đúng');
         }

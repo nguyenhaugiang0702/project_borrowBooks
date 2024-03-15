@@ -16,8 +16,7 @@
                 <div class="card-header row">Tổng Tiền Phải Thanh Toán:</div>
                 <div class="card-body fw-bold">
                     <span>Tổng tiền : </span>
-                    <span class="price text-danger">{{ selectedBooksTotalPrice }}</span>
-                    <span class="text-danger">VNĐ</span>
+                    <span class="price text-danger">{{ selectedBooksTotalPrice ? formatPrice(selectedBooksTotalPrice) : '0 đ' }}</span>
                 </div>
             </div>
             <div class="d-flex justify-content-end">
@@ -59,7 +58,6 @@ export default {
                 });
                 return;
             }
-            console.log(selectedBooksArray.value);
             const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', selectedBooksArray.value)
             if (res.status == 204) {
                 await await axios.post('http://127.0.0.1:3000/api/checkout', { selectedBooks: selectedBooksArray.value, user_id })
@@ -90,10 +88,15 @@ export default {
             }
         });
 
+        const formatPrice = (price) => {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        }
+
         return {
             handleSelectedBooksUpdated,
             GotoCheckOut,
-            selectedBooksTotalPrice
+            selectedBooksTotalPrice,
+            formatPrice
         }
 
     }

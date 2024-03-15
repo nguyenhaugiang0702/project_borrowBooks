@@ -11,27 +11,28 @@
                     <ul class="navbar-nav mx-auto ">
                         <li class="nav-item">
                             <router-link class="text-decoration-none" :to="{ name: 'home' }">
-                                <a class="nav-link text-white" aria-current="page" href="#">Trang Chủ</a>
+                                <a class="nav-link text-white" :class="{ 'active': currentPage === 'home' }" aria-current="page" href="#">Trang Chủ</a>
                             </router-link>
                         </li>
                         <li class="nav-item">
-                            <router-link class="text-decoration-none" :to="{ name: 'booksPage' }">
-                                <a class="nav-link text-white" aria-current="page" href="#">Sản Phẩm</a>
+                            <router-link class="text-decoration-none" :to="{ name: 'booksPage' }" >
+                                <a class="nav-link text-white" :class="{ 'active': currentPage === 'booksPage' || currentPage === 'books-detail' }" aria-current="page" href="#">Sản Phẩm</a>
                             </router-link>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-white" href="#">Etc</a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-white" role="button" data-bs-toggle="dropdown"
+                            <a class="nav-link dropdown-toggle text-white" :class="{ 'active': currentPage === 'books-filter-nxb' }" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
                                 Nhà Xuất Bản
                             </a>
                             <ul class="dropdown-menu">
                                 <li v-for="publisher in publishers" :key="publisher._id">
-                                    <router-link class="text-decoration-none" :to="{name: 'books-filter-nxb', params: { publisherId: publisher._id }}">
+                                    <router-link class="text-decoration-none"
+                                        :to="{ name: 'books-filter-nxb', params: { publisherId: publisher._id } }">
                                         <a class="dropdown-item" href="">
-                                            {{ publisher.publisher_name}}
+                                            {{ publisher.publisher_name }}
                                         </a>
                                     </router-link>
                                 </li>
@@ -47,10 +48,15 @@
     </div>
 </template>
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
+
 export default {
     setup() {
         const publishers = ref([]);
+        const route = useRoute();
+
+        const currentPage = computed(() => route.name);
         const getPublishers = async () => {
             await axios.get('http://127.0.0.1:3000/api/publishers')
                 .then((respones) => {
@@ -69,8 +75,15 @@ export default {
 
         return {
             publishers,
+            currentPage,
             getPublishers,
         }
     }
 }
 </script>
+<style>
+.active {
+    border-bottom: 2px solid #fff;
+    /* Thay đổi màu và kiểu đường gạch dưới tại đây */
+}
+</style>

@@ -5,9 +5,10 @@
                 <img :src="`http://localhost:3000/` + book.book_image" class="card-img-top" alt="...">
             </router-link>
             <div class="card-body">
-                <h5 class="card-title">{{ book.book_name }}</h5>
-                <p class="card-text">{{ book.book_price }}
-                <p>Nhà Xuất Bản: {{ book.publisherInfo.publisher_name }}</p>
+                <h5 class="card-title text-center">{{ book.book_name }}</h5>
+                <p class="card-text text-center">
+                    <span class="text-danger">{{ formatPrice(book.book_price) }}</span>
+                <p class="text-center">Nhà Xuất Bản: {{ book.publisherInfo.publisher_name }}</p>
                 </p>
             </div>
             <div class="card-footer mx-auto bg-white">
@@ -18,9 +19,9 @@
             </div>
         </div>
     </div>
-    <div v-else-if="namePage == 'booksPage' || namePage == 'filterBooksPage'" class="row my-3">
-        <div class="row">
-            <div class="d-flex mx-3 border border-dark ">
+    <div v-else-if="namePage == 'booksPage'" class="row my-3">
+        <div class="row my-3 mx-auto">
+            <div class="d-flex mx-3 border">
                 <div class="mx-2">
                     <router-link :to="{ name: 'home' }">
                         <i style="color:black" class="fa-solid fa-house fs-4 my-2"></i>
@@ -29,22 +30,59 @@
                 <p class="my-2 fs-5 fw-bold">/ Tất cả các sách</p>
             </div>
         </div>
-        <div class="col-sm-3 col-md-3 my-3" v-for="book in books" :key="book._id">
-            <div class="card h-100" style="width: 18rem;">
-                <router-link :to="{ name: 'books-detail', params: { id: book._id } }">
-                    <img :src="`http://localhost:3000/` + book.book_image" class="card-img-top" alt="...">
-                </router-link>
-                <div class="card-body">
-                    <h5 class="card-title">{{ book.book_name }}</h5>
-                    <p class="card-text">{{ book.book_price }}
-                    <p>Nhà Xuất Bản: {{ book.publisherInfo.publisher_name }}</p>
-                    </p>
+        <div class="row mx-3">
+            <div class="col-sm-3 col-md-3 my-3" v-for="book in books" :key="book._id">
+                <div class="card h-100" style="width: 18rem;">
+                    <router-link :to="{ name: 'books-detail', params: { id: book._id } }">
+                        <img :src="`http://localhost:3000/` + book.book_image" class="card-img-top" alt="...">
+                    </router-link>
+                    <div class="card-body">
+                        <h5 class="card-title text-center">{{ book.book_name }}</h5>
+                        <p class="card-text text-center">
+                            <span class="text-danger">{{ formatPrice(book.book_price) }}</span>
+                        <p class="text-center">Nhà Xuất Bản: {{ book.publisherInfo.publisher_name }}</p>
+                        </p>
+                    </div>
+                    <div class="card-footer mx-auto bg-white">
+                        <a href="" @click.prevent="addToCart(book._id, user_id, 1)" class="btn btn-primary">
+                            <i class="fas fa-solid fa-cart-plus"></i>
+                            Thêm vào giỏ
+                        </a>
+                    </div>
                 </div>
-                <div class="card-footer mx-auto bg-white">
-                    <a href="" @click.prevent="addToCart(book._id, user_id, 1)" class="btn btn-primary">
-                        <i class="fas fa-solid fa-cart-plus"></i>
-                        Thêm vào giỏ
-                    </a>
+            </div>
+        </div>
+    </div>
+    <div v-else-if="namePage == 'filterBooksPage'" class="row my-3">
+        <div class="row my-3 mx-auto">
+            <div class="d-flex mx-3 border">
+                <div class="mx-2">
+                    <router-link :to="{ name: 'home' }">
+                        <i style="color:black" class="fa-solid fa-house fs-4 my-2"></i>
+                    </router-link>
+                </div>
+                <p class="my-2 fs-5 fw-bold">/ Tất cả các sách/ {{ publisherName }}</p>
+            </div>
+        </div>
+        <div class="row mx-3">
+            <div class="col-sm-3 col-md-3 my-3" v-for="book in books" :key="book._id">
+                <div class="card h-100" style="width: 18rem;">
+                    <router-link :to="{ name: 'books-detail', params: { id: book._id } }">
+                        <img :src="`http://localhost:3000/` + book.book_image" class="card-img-top" alt="...">
+                    </router-link>
+                    <div class="card-body">
+                        <h5 class="card-title text-center">{{ book.book_name }}</h5>
+                        <p class="card-text text-center">
+                            <span class="text-danger">{{ formatPrice(book.book_price) }}</span>
+                        <p class="text-center">Nhà Xuất Bản: {{ book.publisherInfo.publisher_name }}</p>
+                        </p>
+                    </div>
+                    <div class="card-footer mx-auto bg-white">
+                        <a href="" @click.prevent="addToCart(book._id, user_id, 1)" class="btn btn-primary">
+                            <i class="fas fa-solid fa-cart-plus"></i>
+                            Thêm vào giỏ
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -56,7 +94,6 @@
 import { ref, onMounted, watchEffect } from 'vue';
 import { useStore } from 'vuex';
 import Swal from 'sweetalert2';
-import { param } from 'jquery';
 
 export default {
     props: {
@@ -75,10 +112,12 @@ export default {
         const namePage = props.namePage;
 
         const books = ref([]);
+        const publisherName = ref('');
         const store = useStore();
         const isLoggedIn = sessionStorage.getItem('isLoggedIn');
         const user_id = sessionStorage.getItem('user_id');
 
+        // Get books
         const getBooks = async () => {
             await axios
                 .get('http://127.0.0.1:3000/api/books/')
@@ -90,6 +129,7 @@ export default {
                 })
         }
 
+        // Add to cart
         const addToCart = async (bookId, userId, quantity) => {
             if (!isLoggedIn || !userId) {
                 await Swal.fire({
@@ -109,17 +149,23 @@ export default {
                     }
                 })
                 .catch((error) => {
-                    console.log(error);
+                    Swal.fire({
+                        title: 'Lỗi khi thêm vào giỏ hàng',
+                        text: error.message || 'Đã có lỗi xảy ra khi thêm vào giỏ hàng',
+                        icon: 'error',
+                        timer: 1500,
+                        showConfirmButton: false,
+                    });
                 })
         }
 
+        // Get books with publisher
         const getBooksFilterNxb = async (publisher_Id) => {
             await axios
                 .get(`http://127.0.0.1:3000/api/books/filterPublishers/${publisher_Id}`)
                 .then((response) => {
                     if (response.status == 200) {
                         books.value = response.data;
-                        console.log(response.data);
                     }
                 })
                 .catch((error) => {
@@ -127,6 +173,7 @@ export default {
                 })
         }
 
+        // Proudct At Home
         const getBooksAtHomePage = async () => {
             await axios
                 .get('http://127.0.0.1:3000/api/books/productsHome')
@@ -142,6 +189,7 @@ export default {
             watchEffect(() => {
                 let publisher_Id = props.publisherId;
                 getBooksFilterNxb(publisher_Id);
+                publisherName.value = books.value.length > 0 ? books.value[0].publisherInfo.publisher_name : '';
             });
         } else if (!publisher_Id && namePage == 'booksPage') {
             onMounted(() => {
@@ -154,15 +202,22 @@ export default {
 
         }
 
+        //Format Money
+        const formatPrice = (price) => {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        }
+
         return {
             getBooks,
             addToCart,
             books,
             isLoggedIn,
             user_id,
+            publisherName,
             getBooksFilterNxb,
             publisher_Id,
             getBooksAtHomePage,
+            formatPrice
         }
     }
 }
