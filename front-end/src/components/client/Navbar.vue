@@ -84,6 +84,5 @@ export default {
 <style>
 .active {
     border-bottom: 2px solid #fff;
-    /* Thay đổi màu và kiểu đường gạch dưới tại đây */
 }
 </style>

@@ -162,7 +162,7 @@ export default {
         // Get books with publisher
         const getBooksFilterNxb = async (publisher_Id) => {
             await axios
-                .get(`http://127.0.0.1:3000/api/books/filterPublishers/${publisher_Id}`)
+                .get(`http://127.0.0.1:3000/api/books/publisher/${publisher_Id}`)
                 .then((response) => {
                     if (response.status == 200) {
                         books.value = response.data;

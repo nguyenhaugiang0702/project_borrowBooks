@@ -51,12 +51,14 @@
                             <i class="fa-solid fa-user fs-3 mt-1"></i> {{ user_name }}
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Tài khoản của tôi</a></li>
+                            <li>
+                                <router-link class="dropdown-item text-decoration-none" :to="{name: 'profile'}">Tài khoản</router-link>
+                            </li>
                             <li><a class="dropdown-item" href="#">Another action</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a class="dropdown-item" @click="logOut" href="#">Đăng Xuất</a></li>
+                            <li><a class="dropdown-item" @click="logOut" href="#">Đăng xuất</a></li>
                         </ul>
                     </div>
                 </div>

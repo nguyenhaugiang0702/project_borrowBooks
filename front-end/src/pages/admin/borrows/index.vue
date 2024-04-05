@@ -10,11 +10,13 @@
                             <tr>
                                 <th>#</th>
                                 <th>Khách Hàng</th>
+                                <th>Địa Chỉ</th>
                                 <th>Số Lượng</th>
                                 <th>Đã Trả</th>
                                 <th>Tổng Giá</th>
                                 <th>Ngày Mượn</th>
                                 <th>Ngày Trả</th>
+                                <th>Thời Hạn</th>
                                 <th>Trạng Thái</th>
                                 <th>Chi Tiết</th>
                                 <th>Thao Tác</th>
@@ -71,36 +73,65 @@ export default {
                     }
                 }
             },
+            { data: 'user.user_address' },
             { data: 'totalQuantity' },
             {
                 data: 'totalReturnNumber',
                 render: (data, type, row, meta) => {
                     const remainingQuantity = row.totalQuantity - data;
                     return `<div>(Đã trả: ${data}/${row.totalQuantity})</div> 
-                            <div>(Còn lại: ${remainingQuantity})</div>`;
+                            <div class="fw-bold">(Còn lại: ${remainingQuantity})</div>`;
                 }
-
             },
             { data: 'totalPrice' },
             { data: 'borrow_date', },
             { data: 'return_date' },
+            { data: 'duration' },
             {
+                // cập nhật trạng thái đơn mượn
                 data: '_id',
                 render: (data, type, row, meta) => {
-                    if (row.status == 'Đã Xác Nhận') {
+                    if (row.status == 'Đang mượn') {
+                        // Đang mượn
+                        return `
+                        <button id="" data-id="${data}" class="btn btn-warning" >
+                            ${row.status}
+                        </button>`
+                    } else if (row.status == 'Đã trả') {
+                        // Đã trả
                         return `
                         <button id="" data-id="${data}" class="btn btn-success" >
                             ${row.status}
-                        </button>`
-                    }
-                    return `
-                        <button id="confirmStatus" data-id="${data}" class="btn btn-warning" >
+                        </button>`;
+                    } else if (row.status == 'Yêu cầu hủy') {
+                        // yêu cầu hủy
+                        return `
+                        <div class="dropdown">
+                            <button class="btn btn-danger dropdown-toggle" type="button" id="dropdownMenuButton${data}" data-bs-toggle="dropdown" aria-expanded="false">
+                                ${row.status}
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton${data}">
+                                <li><a class="dropdown-item" href="#" id="cancel" data-id="${data}" data-action="cancel">Hủy</a></li>
+                            </ul>
+                        </div>`;
+                    } else if (row.status == 'Đã hủy') {
+                        return `
+                        <button id="" data-id="${data}" class="btn btn-primary" >
+                            ${row.status}
+                        </button>
+                        `;
+                    } else {
+                        // mặc định là chờ xác nhân
+                        return `
+                        <button id="confirmStatus" data-id="${data}" class="btn btn-info" >
                             ${row.status}
                         </button>
                     `;
+                    }
                 },
             },
             {
+                // Xem chi tiết và cập nhật số lượng trả
                 data: '_id',
                 render: (data, type, row, meta) => {
                     return `
@@ -112,11 +143,12 @@ export default {
                 },
             },
             {
+                // Xóa đơn mượn
                 data: '_id',
                 render: (data, type, row, meta) => {
                     return `
                         <button id="deleteborrow" data-id="${data}" class="btn btn-danger">
-                            <i class="fa-solid fa-eye"></i>
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                         
                     `;
@@ -166,10 +198,10 @@ export default {
                     console.error('Lỗi khi xóa dữ liệu:', error);
                     Swal.fire({
                         title: 'Thất bại!',
-                        text: 'Dữ liệu chưa được xóa.',
+                        text: 'Không thể xóa khi sách đang được mượn',
                         icon: 'error',
                         timer: 1500,
-                        showConfirmButton: false,
+                        showConfirmButton: true,
                     });
                 });
         };
@@ -193,7 +225,7 @@ export default {
         });
 
         $(document).on('click', '#confirmStatus', (event) => {
-            let statusBorrowId = $(event.currentTarget).data('id');
+            let borrowId = $(event.currentTarget).data('id');
             Swal.fire({
                 title: 'Bạn chắc chắn muốn cập nhật trạng thái?',
                 text: "Hành động này sẽ cập nhật trạng thái!",
@@ -204,16 +236,40 @@ export default {
                 confirmButtonText: 'Cập nhật'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    updateStatusBorrrow(statusBorrowId);
+                    updateStatusBorrrow(borrowId, 'Đang mượn');
                 }
             });
         });
 
-        const updateStatusBorrrow = async (statusBorrowId) => {
-            await getOneBorrow(statusBorrowId);
-            const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', borrow.value.books);
-            if (res.status == 204) {
-                await axios.put(`http://127.0.0.1:3000/api/borrows/${statusBorrowId}`)
+        $(document).on('click', '#cancel', (event) => {
+            let borrowId = $(event.currentTarget).data('id');
+            updateStatusBorrrow(borrowId, 'Đã hủy');
+        });
+
+        const updateStatusBorrrow = async (borrowId, status) => {
+            if (status == 'Đang mượn') {
+                await getOneBorrow(borrowId);
+                const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', borrow.value.books);
+                if (res.status == 204) {
+                    await axios.put(`http://127.0.0.1:3000/api/borrows/${borrowId}`, { status: status })
+                        .then((response) => {
+                            if (response.status == 200) {
+                                window.location.reload();
+                            }
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                        })
+                } else {
+                    Swal.fire({
+                        title: 'Vui lòng kiểm tra lại số lượng sách đã cho mượn',
+                        text: "Hành động này sẽ cập nhật trạng thái!",
+                        icon: 'warning',
+                        confirmButtonColor: false,
+                    })
+                }
+            } else if (status == 'Đã hủy') {
+                await axios.put(`http://127.0.0.1:3000/api/borrows/${borrowId}`, { status: status })
                     .then((response) => {
                         if (response.status == 200) {
                             window.location.reload();
@@ -222,14 +278,9 @@ export default {
                     .catch((error) => {
                         console.log(error);
                     })
-            } else {
-                Swal.fire({
-                    title: 'Vui lòng kiểm tra lại số lượng sách đã cho mượn',
-                    text: "Hành động này sẽ cập nhật trạng thái!",
-                    icon: 'warning',
-                    confirmButtonColor: false,
-                })
             }
+
+
         }
 
         function createModal(data, type, row, meta) {

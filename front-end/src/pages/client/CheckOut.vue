@@ -7,10 +7,10 @@
                         <i style="color:black" class="fa-solid fa-house fs-4 my-2"></i>
                     </router-link>
                 </div>
-                <p class="my-2 fs-5 fw-bold">/ <router-link :to="{ name: 'cart' }" class="text-decoration-none text-dark"
-                        href="">Giỏ
-                        Hàng</router-link> /<router-link :to="{ name: 'checkout' }" class="text-decoration-none text-dark"
-                        href=""> Thanh Toán</router-link></p>
+                <p class="my-2 fs-5 fw-bold">/ <router-link :to="{ name: 'cart' }"
+                        class="text-decoration-none text-dark" href="">Giỏ
+                        Hàng</router-link> /<router-link :to="{ name: 'checkout' }"
+                        class="text-decoration-none text-dark" href=""> Thanh Toán</router-link></p>
             </div>
         </div>
         <div class="row mx-auto my-3">
@@ -25,11 +25,20 @@
                     <input type="text" class="form-control" id="sdt" readonly
                         :value="userInfo._id ? userInfo.user_phone : ''">
                 </div>
-
+                <div class="mx-4 form-group" v-if="userInfo.user_address != '' && userInfo.user_address != null">
+                    <label for="address" class="fw-bold form-label">Địa chỉ:</label>
+                    <textarea rows="4" cols="" class="form-control"
+                        placeholder="ví dụ: hẻm 51, đường 3/2, ninh kiều, cần thơ">{{ userInfo.user_address }}</textarea>
+                </div>
+                <div class="mx-4 form-group mt-3" v-else>
+                    <div class="alert alert-warning" role="alert">
+                        Vui lòng thêm địa chỉ!
+                    </div>
+                    <router-link :to="{ name: 'profile-address' }">Thêm địa chỉ ở đây</router-link>
+                </div>
                 <div class="row mx-5">
                     <button class=" my-3 btn btn-success col-2" id="btnCheckOut" name="checkout"
-                        @click="updateCheckoutInfo">Đặt
-                        hàng</button>
+                        @click="updateCheckoutInfo">Mượn</button>
                 </div>
             </div>
 
@@ -73,8 +82,8 @@
                         <hr>
                     </div>
                     <div class="row mx-auto my-3 form-group">
-                        <input class="form-check-input border border-dark col-1 ms-3" type="radio" checked name="payment"
-                            id="payment1" value="Ship COD">
+                        <input class="form-check-input border border-dark col-1 ms-3" type="radio" checked
+                            name="payment" id="payment1" value="Ship COD">
                         <label class="fw-bold col" id="payment1">Thanh toán khi nhận hàng</label>
                     </div>
                     <div class="row mx-auto my-3 form-group">
@@ -101,13 +110,12 @@ export default {
         const user_id = sessionStorage.getItem('user_id');
         const userInfo = ref({})
         const checkoutInfo = ref([]);
-        
+
         const getCheckOut = async () => {
             await axios.get(`http://127.0.0.1:3000/api/checkout/${user_id}`)
                 .then((response) => {
                     if (response.status == 200) {
                         checkout.value = response.data;
-                        console.log(response.data);
                     }
                 })
                 .catch((error) => {
@@ -138,12 +146,11 @@ export default {
                         console.log(error);
                     })
             }
-
         }
 
         const updateCheckoutInfo = async () => {
             const booksArray = checkout.value.selectedBooks;
-            if (user_id && Array.isArray(booksArray)) {
+            if (user_id && Array.isArray(booksArray) && userInfo.value.user_address) {
                 checkoutInfo.value = booksArray.map(book => ({
                     book_id: book.book_id,
                     quantity: book.quantity,
@@ -165,6 +172,12 @@ export default {
                     .catch((error) => {
                         console.log(error);
                     })
+            } else {
+                await Swal.fire({
+                    title: 'Lỗi',
+                    text: 'Vui lòng kiểm tra địa chỉ và giỏ sách',
+                    icon: 'error',
+                });
             }
         };
 
@@ -182,12 +195,7 @@ export default {
             user_id,
             userInfo,
             checkoutInfo,
-
         }
     }
 }
 </script>
-
-
-
-

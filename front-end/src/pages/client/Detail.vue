@@ -171,7 +171,7 @@ export default {
         })
 
         const addToCart = async (bookId, userId, quantity) => {
-            if (!isLoggedIn || !userId) {
+            if (!isLoggedIn && !userId) {
                 await Swal.fire({
                     title: 'Bạn chưa đăng nhập',
                     text: 'Vui lòng đăng nhập để tiếp tục',

@@ -171,24 +171,25 @@ export default {
                     if (isSelected) {
                         const book = booksArray.find(book => book.book_id === bookId);
                         if (book) {
-                            const inputQuantity = parseInt(document.getElementById(`inputQuantity_${book.book_id}`).value);
-                            if (!isNaN(inputQuantity) && inputQuantity >= 1) {
-                                book.quantity = inputQuantity;
-                                updateTotalPrice(book);
-                            } else {
-                                Swal.fire({
-                                    title: 'Giá trị không hợp lệ',
-                                    text: 'Vui lòng nhập một số nguyên lớn hơn hoặc bằng 1',
-                                    icon: 'error',
-                                    timer: 1500,
-                                    confirmButtonText: 'OK',
-                                });
+                            const inputQuantityElement = document.getElementById(`inputQuantity_${book.book_id}`).value;
+                            const inputQuantityValue = inputQuantityElement.trim();
+                            if (inputQuantityValue !== "") {
+                                const inputQuantity = parseInt(inputQuantityValue);
+                                if (!isNaN(inputQuantity) && inputQuantity >= 1) {
+                                    book.quantity = inputQuantity;
+                                    updateTotalPrice(book);
+
+                                    selectedBooksArray.push({
+                                        book_id: book.book_id,
+                                        quantity: book.quantity,
+                                        total_price: book.total_price
+                                    });
+                                }else{
+                                    return ;
+                                }
+                            }else{
+                                return ;
                             }
-                            selectedBooksArray.push({
-                                book_id: book.book_id,
-                                quantity: book.quantity,
-                                total_price: book.total_price
-                            });
                         }
                     }
                 }

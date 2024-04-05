@@ -50,7 +50,7 @@ export default {
             const isSelected = Object.values(selectedBooksArray.value).some(value => value);
             if (!isSelected) {
                 Swal.fire({
-                    title: 'Vui lòng chọn sách',
+                    title: 'Vui lòng chọn sách hoặc kiểm tra lại số lượng',
                     text: 'Bạn phải chọn ít nhất một sách để tiếp tục',
                     icon: 'warning',
                     confirmButtonText: 'Đồng ý',

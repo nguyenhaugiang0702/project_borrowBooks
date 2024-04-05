@@ -1,11 +1,11 @@
 const client = [
     {
         path: "/",
-        redirect: "/home",
+        redirect: "/",
         component: () => import("../layouts/client.vue"),
         children: [
             {
-                path: "home",
+                path: "",
                 name: 'home',
                 component: () => import("../pages/client/Home.vue"),
             },
@@ -34,6 +34,29 @@ const client = [
                 path: "checkout",
                 name: 'checkout',
                 component: () => import("../pages/client/CheckOut.vue"),
+            },
+            {
+                path: "profile",
+                name: 'profile',
+                component: () => import("../layouts/profile.vue"),
+                redirect: { name: 'profile-infoUser' },
+                children: [
+                    {
+                        path: "userInfo",
+                        name: 'profile-infoUser',
+                        component: () => import("../components/client/profile/infoUser.vue"),
+                    },
+                    {
+                        path: "address",
+                        name: 'profile-address',
+                        component: () => import("../components/client/profile/address.vue"),
+                    },
+                    {
+                        path: "loanApplication",
+                        name: 'profile-loanApplication',
+                        component: () => import("../components/client/profile/borrowBook.vue"),
+                    },
+                ]
             },
         ],
     },
