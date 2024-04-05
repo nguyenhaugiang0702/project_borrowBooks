@@ -58,7 +58,7 @@ exports.findALL = async (req, res, next) => {
     return res.send(booksWithPublisherInfo);
   } catch (error) {
     return next(
-      new ApiError(500, "An Error Occurred while retrieving contacts")
+      new ApiError(500, "An Error Occurred while retrieving books")
     );
   }
 };
@@ -84,25 +84,10 @@ exports.search = async (req, res, next) => {
     return res.send(booksWithPublisherInfo);
   } catch (error) {
     return next(
-      new ApiError(500, "An Error Occurred while retrieving contacts")
+      new ApiError(500, "An Error Occurred while retrieving books")
     );
   }
 };
-
-exports.findBookWithPublisherID = async (req, res, next) => {
-  try {
-    const publisherId = new ObjectId(req.params.id);
-    const bookService = new BookService(MongoDB.client);
-    const books = await bookService.find({ publisher_id: publisherId });
-    return res.send(books);
-  } catch (error) {
-    return next(
-      new ApiError(500, "Error while checking books for publisher")
-    );
-  }
-};
-
-
 
 exports.checkNumberBook = async (req, res, next) => {
   try {
@@ -166,13 +151,13 @@ exports.productsHome = async (req, res, next) => {
 
 exports.filterBooksWithPublisher = async (req, res, next) => {
   try {
-    if (!ObjectId.isValid(req.params.id)) {
+    if (!ObjectId.isValid(req.params.publisher_id)) {
       return res.status(400).json({ error: 'Invalid publisher ID' });
     }
     const bookService = new BookService(MongoDB.client);
     const publisherService = new PublisherService(MongoDB.client);
 
-    const books = await bookService.find({ publisher_id: new ObjectId(req.params.id) });
+    const books = await bookService.find({ publisher_id: new ObjectId(req.params.publisher_id) });
 
     const booksWithPublisherInfo = await Promise.all(
       books.map(async (book) => {
@@ -208,7 +193,7 @@ exports.findOne = async (req, res, next) => {
     return res.json(book);
   } catch (error) {
     return next(
-      new ApiError(500, "An Error Occurred while retrieving contacts")
+      new ApiError(500, "An Error Occurred while retrieving books")
     );
   };
 };

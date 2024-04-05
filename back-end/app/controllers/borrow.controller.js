@@ -3,7 +3,6 @@ const MongoDB = require("../utils/mongodb.util");
 const CartService = require("../services/cart.service");
 const BookService = require("../services/book.service");
 const BorrowService = require("../services/borrow.service");
-const PublisherService = require("../services/publisher.service");
 const { ObjectId } = require("mongodb");
 const CheckoutService = require("../services/checkout.service");
 const UserService = require("../services/user.service");
@@ -77,10 +76,10 @@ exports.findALL = async (req, res, next) => {
             }));
 
             let totalQuantity = 0;
-            let totalReturnNumber=0;
+            let totalReturnNumber = 0;
             for (d of doc.books) {
                 totalQuantity += d.quantity;
-                totalReturnNumber+=parseInt(d.return_number);
+                totalReturnNumber += parseInt(d.return_number);
             }
 
             const docWithDetails = {
@@ -91,15 +90,16 @@ exports.findALL = async (req, res, next) => {
                 totalQuantity: totalQuantity,
                 totalPrice: doc.totalPrice,
                 status: doc.status,
-                borrow_date: doc.borrow_date,
+                borrow_date: doc.borrow_date ? doc.borrow_date : 'Chưa Biết',
                 return_date: doc.return_date ? doc.return_date : 'Chưa Biết',
+                duration: doc.duration ? doc.duration : 'Chưa Biết',
             };
 
             documentsWithDetails.push(docWithDetails);
         }
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving borrows")
         );
     }
 
@@ -132,7 +132,7 @@ exports.getBorrowWithID = async (req, res, next) => {
         return res.send(docWithDetails);
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving borrows")
         );
     }
 }
@@ -140,12 +140,18 @@ exports.getBorrowWithID = async (req, res, next) => {
 exports.getBorrowWithUserId = async (req, res, next) => {
     try {
         const borrowService = new BorrowService(MongoDB.client);
-        const document = await borrowService.findBorrowWithUserId(req.params.user_id);
-        
-        return res.send(document);
+        const bookService = new BookService(MongoDB.client);
+        const documents = await borrowService.find({ user_id: new ObjectId(req.params.user_id) });
+        for (const borrow of documents) {
+            for (const book of borrow.books) {
+                const bookInfo = await bookService.findById(book.book_id);
+                book.book_info = bookInfo;
+            }
+        }
+        return res.send(documents);
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving borrows")
         );
     }
 }
@@ -202,12 +208,12 @@ exports.update = async (req, res, next) => {
         const cartService = new CartService(MongoDB.client);
         const document = await cartService.update(req.params.id, req.body);
         if (!document) {
-            return next(new ApiError(404, "nxb not found"));
+            return next(new ApiError(404, "borrow not found"));
         }
-        return res.send({ messgae: "nxb was updated successfully" });
+        return res.send({ messgae: "borrow was updated successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Error updating nxb with id=${req.params.id}`)
+            new ApiError(500, `Error updating borrow with id=${req.params.id}`)
         );
     }
 };
@@ -216,51 +222,23 @@ exports.updateStatus = async (req, res, next) => {
     try {
         const borrowService = new BorrowService(MongoDB.client);
         const bookService = new BookService(MongoDB.client);
-        const doc = await borrowService.updateStatus(req.params.id);
+        if(req.body.status == 'Đang mượn'){
+            const doc = await borrowService.updateStatus(req.params.id, req.body.status);
 
-        // Cập nhật số lượng mượn vào cơ sở dữ liệu
-        await Promise.all(doc.books.map(async (book) => {
-            await bookService.updateBorrowedNumber(book.book_id, book.quantity);
-        }));
+            // Cập nhật số lượng mượn vào cơ sở dữ liệu
+            await Promise.all(doc.books.map(async (book) => {
+                await bookService.updateBorrowedNumber(book.book_id, book.quantity);
+            }));
+            return res.send(doc);
+    
+        }else if(req.body.status == 'Yêu cầu hủy' || req.body.status == 'Đã hủy'){
+            const doc = await borrowService.updateStatus(req.params.id, req.body.status);
+            return res.send(doc);
+        }
 
-        return res.send(doc);
     } catch (error) {
         return next(
             new ApiError(500, `Error updating nxb with id=${req.params.id}`)
-        );
-    }
-};
-
-exports.deleteBook = async (req, res, next) => {
-    try {
-        const cartService = new CartService(MongoDB.client);
-        const user_id = req.params.user_id;
-        const book_id = req.params.book_id;
-        console.log(user_id, book_id);
-        const deletedProduct = await cartService.deleteProductFromCart(user_id, book_id);
-        if (!deletedProduct) {
-            return next(new ApiError(404, "book with user_id in cart not found"));
-        }
-        return res.send({ messgae: "book was deleted successfully" });
-    } catch (error) {
-        return next(
-            new ApiError(500, `Could not delete book with id=${req.params.id}`)
-        );
-    }
-};
-
-exports.deleteAllBook = async (req, res, next) => {
-    try {
-        const cartService = new CartService(MongoDB.client);
-        const userId = req.params.user_id;
-        console.log(userId);
-        const deletedCount = await cartService.deleteAllProducts(userId);
-        return res.send({
-            message: `${deletedCount} nxbs were deleted successfully`,
-        });
-    } catch (error) {
-        return next(
-            new ApiError(500, "An Error Occurred while removing all nxbs")
         );
     }
 };
@@ -269,13 +247,17 @@ exports.deleteBorrowWithId = async (req, res, next) => {
     try {
         const borrowService = new BorrowService(MongoDB.client);
         const borrowId = req.params.id;
+        const borrow = await borrowService.findById(borrowId);
+        if (borrow.status !== 'Đang chờ xác nhận' && borrow.status !== 'Đã trả' && borrow.status !== 'Đã hủy') {
+            return res.status(400).json({ message: "Không thể xóa mượn với trạng thái hiện tại" });
+        }
         const deletedCount = await borrowService.delete(borrowId);
         return res.send({
-            message: `${deletedCount} nxbs were deleted successfully`,
+            message: `${deletedCount} borrows were deleted successfully`,
         });
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while removing all nxbs")
+            new ApiError(500, "An Error Occurred while removing all borrows")
         );
     }
 };
@@ -288,15 +270,17 @@ exports.updateReturnBookNumber = async (req, res, next) => {
             return res.status(400).json({ message: "Vui lòng cung cấp thông tin sách cần cập nhật" });
         }
         const borrowService = new BorrowService(MongoDB.client);
+        const bookService = new BookService(MongoDB.client);
         await Promise.all(books.map(async (book) => {
             const { book_id, return_number } = book;
             await borrowService.updateReturnNumber(book_id, borrowId, return_number);
+            await bookService.updateBorrowedNumber(new ObjectId(book_id), -return_number);
         }));
 
         return res.status(200).json({ message: "Cập nhật số lượng trả thành công" });
     } catch (error) {
         return next(
-            new ApiError(500, "Error while checking books for publisher")
+            new ApiError(500, "Error while checking books for number")
         );
     }
 }

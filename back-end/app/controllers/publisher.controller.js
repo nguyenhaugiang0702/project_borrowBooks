@@ -16,7 +16,7 @@ exports.create = async (req, res, next) => {
         const document = await publishersService.create(req.body);
         return res.send(document);
     } catch (error) {
-        return next(new ApiError(500, "An Error Occurred while creating the nxb"));
+        return next(new ApiError(500, "An Error Occurred while creating the publishers"));
     }
 };
 
@@ -33,7 +33,7 @@ exports.findALL = async (req, res, next) => {
         }
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving publishers")
         );
     }
 
@@ -45,12 +45,12 @@ exports.findOne = async (req, res, next) => {
         const publishersService = new PublishersService(MongoDB.client);
         const document = await publishersService.findById(req.params.id);
         if (!document) {
-            return next(new ApiError(404, "Contact not found"));
+            return next(new ApiError(404, "publisher not found"));
         }
         return res.send(document);
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving publishers")
         );
     };
 };
@@ -64,12 +64,12 @@ exports.update = async (req, res, next) => {
         const publishersService = new PublishersService(MongoDB.client);
         const document = await publishersService.update(req.params.id, req.body);
         if (!document) {
-            return next(new ApiError(404, "nxb not found"));
+            return next(new ApiError(404, "publisher not found"));
         }
-        return res.send({ messgae: "nxb was updated successfully" });
+        return res.send({ messgae: "publisher was updated successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Error updating nxb with id=${req.params.id}`)
+            new ApiError(500, `Error updating publisher with id=${req.params.id}`)
         );
     }
 };
@@ -85,12 +85,12 @@ exports.delete = async (req, res, next) => {
         });
         const document = await publishersService.delete(req.params.id);
         if (!document) {
-            return next(new ApiError(404, "nxb not found"));
+            return next(new ApiError(404, "publisher not found"));
         }
-        return res.send({ messgae: "nxb was deleted successfully" });
+        return res.send({ messgae: "publisher was deleted successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Could not delete nxb with id=${req.params.id}`)
+            new ApiError(500, `Could not delete publisher with id=${req.params.id}`)
         );
     }
 };
@@ -100,11 +100,11 @@ exports.deleteALL = async (req, res, next) => {
         const publishersService = new PublishersService(MongoDB.client);
         const deletedCount = await publishersService.deleteAll();
         return res.send({
-            message: `${deletedCount} nxbs were deleted successfully`,
+            message: `${deletedCount} publishers were deleted successfully`,
         });
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while removing all nxbs")
+            new ApiError(500, "An Error Occurred while removing all publishers")
         );
     }
 };

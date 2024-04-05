@@ -12,6 +12,7 @@ class UserService {
             user_gender: payload.user_gender,
             user_phone: payload.user_phone,
             user_password: payload.user_password,
+            user_address: payload.user_address || null,
         };
         // Remove undefined fields
         Object.keys(user).forEach(
@@ -72,7 +73,7 @@ class UserService {
         const result = await this.User.findOneAndUpdate(
             filter,
             { $set: update },
-            { returnDocument: "after" }
+            { returnDocument: "after" } 
         );
 
         return result;

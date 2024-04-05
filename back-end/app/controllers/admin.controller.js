@@ -36,7 +36,7 @@ exports.findALL = async (req, res, next) => {
         }
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving admins")
         );
     }
 
@@ -48,12 +48,12 @@ exports.findOne = async (req, res, next) => {
         const adminService = new AdminService(MongoDB.client);
         const document = await adminService.findById(req.params.id);
         if (!document) {
-            return next(new ApiError(404, "Contact not found"));
+            return next(new ApiError(404, "Admin not found"));
         }
         return res.send(document);
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving admins")
         );
     };
 };
@@ -67,12 +67,12 @@ exports.update = async (req, res, next) => {
         const adminService = new AdminService(MongoDB.client);
         const document = await adminService.update(req.params.id, req.body);
         if (!document) {
-            return next(new ApiError(404, "nxb not found"));
+            return next(new ApiError(404, "admin not found"));
         }
-        return res.send({ messgae: "nxb was updated successfully" });
+        return res.send({ messgae: "admin was updated successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Error updating nxb with id=${req.params.id}`)
+            new ApiError(500, `Error updating admin with id=${req.params.id}`)
         );
     }
 };
@@ -82,12 +82,12 @@ exports.delete = async (req, res, next) => {
         const adminService = new AdminService(MongoDB.client);
         const document = await adminService.delete(req.params.id);
         if (!document) {
-            return next(new ApiError(404, "nxb not found"));
+            return next(new ApiError(404, "admin not found"));
         }
-        return res.send({ messgae: "nxb was deleted successfully" });
+        return res.send({ messgae: "admin was deleted successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Could not delete nxb with id=${req.params.id}`)
+            new ApiError(500, `Could not delete admin with id=${req.params.id}`)
         );
     }
 };
@@ -97,11 +97,11 @@ exports.deleteALL = async (req, res, next) => {
         const adminService = new AdminService(MongoDB.client);
         const deletedCount = await adminService.deleteAll();
         return res.send({
-            message: `${deletedCount} nxbs were deleted successfully`,
+            message: `${deletedCount} admins were deleted successfully`,
         });
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while removing all nxbs")
+            new ApiError(500, "An Error Occurred while removing all admins")
         );
     }
 };

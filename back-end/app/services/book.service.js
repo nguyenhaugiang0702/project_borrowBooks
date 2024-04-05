@@ -126,8 +126,6 @@ class BookService {
       throw new Error(`Không thể cập nhật số lượng mượn cho sách: ${error.message}`);
     }
   };
-
- 
-
 }
+
 module.exports = BookService;

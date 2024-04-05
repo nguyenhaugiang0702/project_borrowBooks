@@ -60,7 +60,7 @@ exports.findALL = async (req, res, next) => {
         }
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving carts")
         );
     }
 
@@ -71,8 +71,7 @@ exports.getCart = async (req, res, next) => {
     try {
         const cartService = new CartService(MongoDB.client);
         const bookService = new BookService(MongoDB.client);
-        const user_id = req.params.id;
-        const cart = await cartService.findByUserId(user_id);
+        const cart = await cartService.findByUserId(req.params.user_id);
         if (!cart) {
             return res.send({
                 user_id: user_id,
@@ -111,7 +110,7 @@ exports.getCart = async (req, res, next) => {
         return res.send(cartWithBooks);
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving carts")
         );
     };
 };
@@ -123,14 +122,14 @@ exports.update = async (req, res, next) => {
 
     try {
         const cartService = new CartService(MongoDB.client);
-        const document = await cartService.update(req.params.id, req.body);
+        const document = await cartService.update(req.params.user_id, req.body);
         if (!document) {
-            return next(new ApiError(404, "nxb not found"));
+            return next(new ApiError(404, "cart not found"));
         }
-        return res.send({ messgae: "nxb was updated successfully" });
+        return res.send({ messgae: "cart was updated successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Error updating nxb with id=${req.params.id}`)
+            new ApiError(500, `Error updating cart with id=${req.params.user_id}`)
         );
     }
 };

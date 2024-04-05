@@ -8,21 +8,22 @@ router
     .post(books.create)
     .delete(books.deleteALL);
 
+// Tìm kiếm sách
 router
     .route("/search")
     .get(books.search)
 
+// Sách ở trang chủ
 router
     .route("/productsHome")
     .get(books.productsHome)
+
+// Lọc sách theo nhà xuất bản
 router
-    .route("/filterPublishers/:id")
+    .route("/publisher/:publisher_id")
     .get(books.filterBooksWithPublisher)
-
-router
-    .route("/publisher/:id")
-    .get(books.findBookWithPublisherID)
-
+    
+// Kiểm tra số lượng mượn
 router
     .route("/checkNumber")
     .post(books.checkNumberBook)

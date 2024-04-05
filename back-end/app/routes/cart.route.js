@@ -8,14 +8,16 @@ router
     .post(carts.addtocart)
 
 router
-    .route("/:id")
+    .route("/:user_id")
     .get(carts.getCart)
     .put(carts.update)
 
+// Xóa sách trong giỏ
 router
     .route("/:user_id/:book_id")
     .delete(carts.deleteBook);
 
+// Xóa tất cả sách trong giỏ khi tiến hành mượn
 router
     .route("/:user_id")
     .delete(carts.deleteAllBook);

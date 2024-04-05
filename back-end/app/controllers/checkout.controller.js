@@ -39,7 +39,7 @@ exports.findALL = async (req, res, next) => {
         }
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving checkouts")
         );
     }
 
@@ -57,7 +57,7 @@ exports.findOne = async (req, res, next) => {
         return res.send(document[0]);
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving checkouts")
         );
     };
 };
@@ -71,12 +71,12 @@ exports.update = async (req, res, next) => {
         const adminService = new CheckoutService(MongoDB.client);
         const document = await adminService.update(req.params.id, req.body);
         if (!document) {
-            return next(new ApiError(404, "nxb not found"));
+            return next(new ApiError(404, "checkout not found"));
         }
-        return res.send({ messgae: "nxb was updated successfully" });
+        return res.send({ messgae: "checkout was updated successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Error updating nxb with id=${req.params.id}`)
+            new ApiError(500, `Error updating checkout with id=${req.params.id}`)
         );
     }
 };
@@ -86,12 +86,12 @@ exports.delete = async (req, res, next) => {
         const adminService = new CheckoutService(MongoDB.client);
         const document = await adminService.delete(req.params.id);
         if (!document) {
-            return next(new ApiError(404, "nxb not found"));
+            return next(new ApiError(404, "checkout not found"));
         }
-        return res.send({ messgae: "nxb was deleted successfully" });
+        return res.send({ messgae: "checkout was deleted successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Could not delete nxb with id=${req.params.id}`)
+            new ApiError(500, `Could not delete checkout with id=${req.params.id}`)
         );
     }
 };
@@ -101,11 +101,11 @@ exports.deleteALL = async (req, res, next) => {
         const adminService = new CheckoutService(MongoDB.client);
         const deletedCount = await adminService.deleteAll();
         return res.send({
-            message: `${deletedCount} nxbs were deleted successfully`,
+            message: `${deletedCount} checkouts were deleted successfully`,
         });
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while removing all nxbs")
+            new ApiError(500, "An Error Occurred while removing all checkouts")
         );
     }
 };

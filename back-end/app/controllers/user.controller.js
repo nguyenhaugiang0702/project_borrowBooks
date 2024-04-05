@@ -91,46 +91,11 @@ exports.findOne = async (req, res, next) => {
 
 exports.update = async (req, res, next) => {
     try {
-        multer.any()(req, res, async function (err) {
-            if (err) {
-                console.log(err);
-                return next(new ApiError(500, "Error uploading image"));
-            }
-
-            if (Object.keys(req.body).length == 0) {
-                return next(new ApiError(400, "Data to update can not be empty"));
-            }
-
-            try {
-                const userService = new UserService(MongoDB.client);
-                try {
-                    const currentBook = await userService.findById(req.params.id);
-                    if (req.files && req.files.length > 0 && currentBook.book_image) {
-                        const oldbook_image = currentBook.book_image;
-                        await fs.unlink(oldbook_image);
-                    }
-                } catch (error) {
-                    console.log(error);
-                    console.log(132);
-                }
-
-                if (req.files && req.files.length > 0) {
-                    const imagePathArray = req.files.map(file => file.path);
-                    const imagePathString = imagePathArray.join(" ")
-                    req.body.imagePath = imagePathString;
-                }
-
-                const document = await userService.update(req.params.id, req.body);
-                if (!document) {
-                    return next(new ApiError(404, "book not found"));
-                }
-                return res.send({ messgae: "Book was updated successfully" });
-            } catch (error) {
-                return next(
-                    new ApiError(500, `Error updating book with id=${req.params.id}`)
-                );
-            }
-        });
+        const user_id = req.params.id;
+        const userService = new UserService(MongoDB.client);
+        const document = await userService.update(user_id, req.body);
+        console.log(document);
+        return res.send(document);
     } catch (error) {
         return next(new ApiError(500, "An Error Occurred while processing the request"));
     }

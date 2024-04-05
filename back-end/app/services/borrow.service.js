@@ -18,7 +18,8 @@ class BorrowService {
             })),
             totalPrice: payload.totalPrice,
             status: 'Đang chờ xác nhận',
-            borrow_date: moment().format('DD-MM-YYYY HH:mm'),
+            borrow_date: null,
+            duration: null,
             return_date: null,
         };
 
@@ -56,12 +57,6 @@ class BorrowService {
         });
     }
 
-    async findBorrowWithUserId(id) {
-        return await this.Borrow.findOne({
-            user_id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        });
-    }
-
     // update
     async update(cartId, updatedCart) {
         const filter = {
@@ -79,14 +74,46 @@ class BorrowService {
     }
 
     //update Status
-    async updateStatus(id) {
+    async updateStatus(id, status) {
         const filter = {
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
         };
-        const borrowRecord = await this.Borrow.findOne(filter);
-        borrowRecord.status = 'Đã Xác Nhận';
-        await this.Borrow.updateOne(filter, { $set: { status: borrowRecord.status } });
-        return borrowRecord;
+        if (status == 'Đang mượn') {
+            const borrowRecord = await this.Borrow.findOne(filter);
+            borrowRecord.status = status;
+            // Lấy ngày mượn
+            const borrowDate = moment().format('DD-MM-YYYY HH:mm');
+            borrowRecord.borrow_date = borrowDate;
+
+            // Tính toán ngày trả: ngày mượn + 14 ngày
+            const duration = moment().add(14, 'days').format('DD-MM-YYYY HH:mm');
+            borrowRecord.duration = duration;
+            await this.Borrow.updateOne(
+                filter,
+                {
+                    $set:
+                    {
+                        status: borrowRecord.status,
+                        borrow_date: borrowRecord.borrow_date,
+                        duration: borrowRecord.duration,
+                    }
+                }
+            );
+            return borrowRecord;
+        }else if(status == 'Yêu cầu hủy' || status == 'Đã hủy'){
+            const borrowRecord = await this.Borrow.findOne(filter);
+            borrowRecord.status = status;
+            await this.Borrow.updateOne(
+                filter,
+                {
+                    $set:
+                    {
+                        status: borrowRecord.status,
+                    }
+                }
+            );
+            return borrowRecord;
+        }
     }
 
 
@@ -148,12 +175,23 @@ class BorrowService {
 
     async updateReturnNumber(bookId, borrowId, returnNumber) {
         try {
+            // câp nhật ngày trả và sô lượng đã trả
             const today = moment().format('DD-MM-YYYY HH:mm');
             const result = await this.Borrow.updateOne(
                 { _id: new ObjectId(borrowId), "books.book_id": new ObjectId(bookId) },
                 { $set: { "books.$.return_number": returnNumber, return_date: today } }
             );
-    
+
+            // Kiểm tra xem số lượng đã trả đủ chưa
+            const borrow = await this.Borrow.findOne({ _id: new ObjectId(borrowId) });
+            // Tính tổng số lượng sách mượn
+            const totalQuantityBorrowed = borrow.books.reduce((total, book) => total + book.quantity, 0);
+            // Tính tổng số lượng sách đã trả
+            const totalReturned = borrow.books.reduce((total, book) => total + book.return_number, 0);
+            if (totalReturned == totalQuantityBorrowed) {
+                await this.Borrow.updateOne({ _id: new ObjectId(borrowId) }, { $set: { status: 'Đã trả' } });
+            }
+
             return result;
         } catch (error) {
             console.error(error);
