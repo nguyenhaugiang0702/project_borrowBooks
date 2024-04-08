@@ -1,14 +1,21 @@
 const express = require("express");
 const borrow = require("../controllers/borrow.controller");
+const authenticateToken = require("../middelware/jwt");
 
 const router = express.Router();
+
 router
     .route("/")
     .get(borrow.findALL)
-    .post(borrow.addtoTrackBookBorrowing)
+    .post(authenticateToken, borrow.addtoTrackBookBorrowing)
+
+// Lấy tất cả các đơn mượn từ user_id
+router
+    .route("/user")
+    .get(authenticateToken, borrow.getBorrowWithUserId)
 
 // Cập nhật số lượng sách trả
-router 
+router
     .route("/updateReturnNumber/:id")
     .put(borrow.updateReturnBookNumber)
 
@@ -16,11 +23,6 @@ router
 router
     .route("/:id")
     .get(borrow.getBorrowWithID)
-
-// Lấy tất cả các đơn mượn từ user_id
-router
-    .route("/users/:user_id")
-    .get(borrow.getBorrowWithUserId)
 
 // Xóa đơn mượn với id đơn mượn
 router

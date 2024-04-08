@@ -2,13 +2,13 @@ const ApiError = require("../api-error.js");
 const MongoDB = require("../utils/mongodb.util.js");
 const PublishersService = require("../services/publisher.service.js");
 const BookService = require("../services/book.service.js");
-const multer = require('../../multerConfig.js');
+const multer = require('../utils/multerConfig.js');
 const fs = require('fs').promises;
 const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
-    if (!req.body?.publisher_name) {
-        return next(new ApiError(400, "Name can not be empty"));
+    if (!req.body?.publisher_name && !req.body?.publisher_address) {
+        return next(new ApiError(400, "Không thể để trống"));
     }
 
     try {

@@ -5,29 +5,26 @@ const BookService = require("../services/book.service");
 const PublisherService = require("../services/publisher.service");
 const { ObjectId } = require("mongodb");
 const UserService = require("../services/user.service");
+const jwt = require('jsonwebtoken');
 
 exports.addtocart = async (req, res, next) => {
-    if (!req.body?.book_id || !req.body?.user_id) {
-        return res.status(400).json({ message: "Vui lòng cung cấp book_id và user_id" });
-    }
-    if (!/^[0-9a-fA-F]{24}$/.test(req.body.user_id)) {
-        return next(new ApiError(400, "user_id không hợp lệ"));
-    }
     try {
         const cartService = new CartService(MongoDB.client);
         const userService = new UserService(MongoDB.client);
 
-        const user_id = new ObjectId(req.body.user_id);
+        // const user_id = new ObjectId(req.body.user_id);
         const book_id = new ObjectId(req.body.book_id);
         const quantity = req.body.quantity;
+        const user_id = new ObjectId(req.user.user_id); // Lấy user_id từ JWT đã được giải mã
 
         const userInfo = await userService.findById(user_id);
-        if(!userInfo){
+        if (!userInfo) {
             return next(new ApiError(400, "user_id không hợp lệ"));
         }
         let cart = await cartService.find({ user_id });
-        if (!cart || cart.length === 0) {
-            cart = await cartService.create(req.body);
+        if (!cart || cart.length == 0) {
+            const newCartData = { ...req.body, user_id: req.user.user_id };
+            cart = await cartService.create(newCartData);
         } else {
             const existingBook = cart[0].books.find(book => book.book_id.equals(book_id));
             if (existingBook) {
@@ -71,7 +68,8 @@ exports.getCart = async (req, res, next) => {
     try {
         const cartService = new CartService(MongoDB.client);
         const bookService = new BookService(MongoDB.client);
-        const cart = await cartService.findByUserId(req.params.user_id);
+        const user_id = req.user.user_id;
+        const cart = await cartService.findByUserId(user_id);
         if (!cart) {
             return res.send({
                 user_id: user_id,
@@ -137,9 +135,8 @@ exports.update = async (req, res, next) => {
 exports.deleteBook = async (req, res, next) => {
     try {
         const cartService = new CartService(MongoDB.client);
-        const user_id = req.params.user_id;
+        const user_id = req.user.user_id;
         const book_id = req.params.book_id;
-        console.log(user_id, book_id);
         const deletedProduct = await cartService.deleteProductFromCart(user_id, book_id);
         if (!deletedProduct) {
             return next(new ApiError(404, "book with user_id in cart not found"));
@@ -155,15 +152,14 @@ exports.deleteBook = async (req, res, next) => {
 exports.deleteAllBook = async (req, res, next) => {
     try {
         const cartService = new CartService(MongoDB.client);
-        const userId = req.params.user_id;
-        console.log(userId);
+        const userId = req.user.user_id;
         const deletedCount = await cartService.deleteAllProducts(userId);
         return res.send({
-            message: `${deletedCount} nxbs were deleted successfully`,
+            message: `${deletedCount} books were deleted successfully`,
         });
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while removing all nxbs")
+            new ApiError(500, "An Error Occurred while removing all books")
         );
     }
 };

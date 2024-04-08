@@ -3,6 +3,7 @@ const MongoDB = require("../utils/mongodb.util");
 const UserService = require("../services/user.service");
 const bcrypt = require('bcrypt');
 const BorrowService = require("../services/borrow.service");
+const jwt = require('jsonwebtoken');
 
 exports.create = async (req, res, next) => {
     if (!req.body?.user_name) {
@@ -43,9 +44,13 @@ exports.loginUser = async (req, res, next) => {
     try {
         const userService = new UserService(MongoDB.client);
         const user = await userService.authenticateUser(req.body);
+        const accessToken = jwt.sign({ user_id: user._id }, 'my_secret_key', { expiresIn: '24h' });
         return res.json({
             message: 'Thanh cong',
-            user,
+            accessToken: accessToken,
+            user_name: user.user_name,
+            user_phone: user.user_phone,
+            user_address: user.user_address,
         });
     } catch (error) {
         const errorMessage = error.message || "Có lỗi xảy ra";
@@ -67,7 +72,7 @@ exports.findALL = async (req, res, next) => {
         }
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving users")
         );
     }
 
@@ -77,24 +82,23 @@ exports.findALL = async (req, res, next) => {
 exports.findOne = async (req, res, next) => {
     try {
         const userService = new UserService(MongoDB.client);
-        const document = await userService.findById(req.params.id);
+        const document = await userService.findById(req.user.user_id);
         if (!document) {
-            return next(new ApiError(404, "Contact not found"));
+            return next(new ApiError(404, "user not found"));
         }
         return res.send(document);
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
+            new ApiError(500, "An Error Occurred while retrieving user")
         );
     };
 };
 
 exports.update = async (req, res, next) => {
     try {
-        const user_id = req.params.id;
+        const user_id = req.user.user_id;
         const userService = new UserService(MongoDB.client);
         const document = await userService.update(user_id, req.body);
-        console.log(document);
         return res.send(document);
     } catch (error) {
         return next(new ApiError(500, "An Error Occurred while processing the request"));
@@ -107,13 +111,13 @@ exports.delete = async (req, res, next) => {
         const borrowService = new BorrowService(MongoDB.client);
         const document = await userService.delete(req.params.id);
         if (!document) {
-            return next(new ApiError(404, "book not found"));
+            return next(new ApiError(404, "user not found"));
         }
         await borrowService.deleteWithUserId(req.params.id);
-        return res.send({ messgae: "book was deleted successfully" });
+        return res.send({ messgae: "user was deleted successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Could not delete book with id=${req.params.id}`)
+            new ApiError(500, `Could not delete user with id=${req.params.id}`)
         );
     }
 };
@@ -123,11 +127,11 @@ exports.deleteALL = async (req, res, next) => {
         const userService = new UserService(MongoDB.client);
         const deletedCount = await userService.deleteAll();
         return res.send({
-            message: `${deletedCount} books were deleted successfully`,
+            message: `${deletedCount} users were deleted successfully`,
         });
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while removing all books")
+            new ApiError(500, "An Error Occurred while removing all users")
         );
     }
 };

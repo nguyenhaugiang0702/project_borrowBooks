@@ -5,17 +5,18 @@ const { ObjectId } = require("mongodb");
 
 
 exports.create = async (req, res, next) => {
-    const { selectedBooks, user_id } = req.body;
-    if (!selectedBooks || !user_id) {
+    const user_id = req.user.user_id;
+    const { selectedBooks } = req.body;
+    if (!selectedBooks) {
         return next(
-            new ApiError(500, "Loi khi checkout")
+            new ApiError(400, "Vui lòng chọn sách để thanh toán")
         );
     }
     try {
         const checkoutService = new CheckoutService(MongoDB.client);
         let checkouted = await checkoutService.find({ user_id });
         if(checkouted){
-            await checkoutService.deleteCheckOut(req.body.user_id);
+            await checkoutService.deleteCheckOut(user_id);
         }
         document = await checkoutService.create({ selectedBooks, user_id });
         return res.send(document);
@@ -49,7 +50,7 @@ exports.findALL = async (req, res, next) => {
 exports.findOne = async (req, res, next) => {
     try {
         const checkoutService = new CheckoutService(MongoDB.client);
-        const user_id = new ObjectId(req.params.id);
+        const user_id = new ObjectId(req.user.user_id);
         const document = await checkoutService.find({ user_id });
         if (!document) {
             return next(new ApiError(404, "Checkout not found"));

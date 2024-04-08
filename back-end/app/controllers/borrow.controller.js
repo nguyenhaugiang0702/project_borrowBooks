@@ -9,9 +9,10 @@ const UserService = require("../services/user.service");
 
 exports.addtoTrackBookBorrowing = async (req, res, next) => {
     try {
-        const { checkoutInfoOfUser, user_id } = req.body;
-        if (!req.body?.checkoutInfoOfUser || !req.body?.user_id) {
-            return res.status(400).json({ message: "Vui lòng cung cấp checkoutInfoOfUser và user_id" });
+        const user_id = req.user.user_id;
+        const { checkoutInfoOfUser } = req.body;
+        if (!req.body?.checkoutInfoOfUser) {
+            return res.status(400).json({ message: "Vui lòng cung cấp checkoutInfoOfUser" });
         }
         const borrowService = new BorrowService(MongoDB.client);
         const cartService = new CartService(MongoDB.client);
@@ -30,7 +31,7 @@ exports.addtoTrackBookBorrowing = async (req, res, next) => {
         // tìm sách tồn tại trong giỏ hàng
         const existingBooksInCart = await cartService.findByUserId(user_id);
 
-        const document = await borrowService.create({ checkoutInfoOfUser, totalPrice, user_id });
+        const document = await borrowService.create({ checkoutInfoOfUser, totalPrice, user_id: user_id });
         for (const book of existingBooksInCart.books) {
             for (const borrowedBook of borrowedBooks) {
                 if (borrowedBook.book_id.equals(book.book_id)) {
@@ -141,7 +142,8 @@ exports.getBorrowWithUserId = async (req, res, next) => {
     try {
         const borrowService = new BorrowService(MongoDB.client);
         const bookService = new BookService(MongoDB.client);
-        const documents = await borrowService.find({ user_id: new ObjectId(req.params.user_id) });
+        const user_id = req.user.user_id;
+        const documents = await borrowService.find({ user_id: new ObjectId(user_id) });
         for (const borrow of documents) {
             for (const book of borrow.books) {
                 const bookInfo = await bookService.findById(book.book_id);
@@ -151,7 +153,7 @@ exports.getBorrowWithUserId = async (req, res, next) => {
         return res.send(documents);
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving borrows")
+            new ApiError(500, "An Error Occurred while retrieving borrows1")
         );
     }
 }
@@ -222,7 +224,7 @@ exports.updateStatus = async (req, res, next) => {
     try {
         const borrowService = new BorrowService(MongoDB.client);
         const bookService = new BookService(MongoDB.client);
-        if(req.body.status == 'Đang mượn'){
+        if (req.body.status == 'Đang mượn') {
             const doc = await borrowService.updateStatus(req.params.id, req.body.status);
 
             // Cập nhật số lượng mượn vào cơ sở dữ liệu
@@ -230,8 +232,8 @@ exports.updateStatus = async (req, res, next) => {
                 await bookService.updateBorrowedNumber(book.book_id, book.quantity);
             }));
             return res.send(doc);
-    
-        }else if(req.body.status == 'Yêu cầu hủy' || req.body.status == 'Đã hủy'){
+
+        } else if (req.body.status == 'Yêu cầu hủy' || req.body.status == 'Đã hủy') {
             const doc = await borrowService.updateStatus(req.params.id, req.body.status);
             return res.send(doc);
         }
