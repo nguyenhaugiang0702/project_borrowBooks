@@ -53,6 +53,7 @@ import * as yup from "yup";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import Swal from 'sweetalert2';
 import { useStore } from 'vuex';
+import Cookies from 'js-cookie';
 
 export default {
     components: {
@@ -80,19 +81,18 @@ export default {
                             user_name: '',
                             user_password: '',
                         }
+                        sessionStorage.setItem('user_name', response.data.user_name);
+                        sessionStorage.setItem('user_phone', response.data.user_phone);
+                        sessionStorage.setItem('user_address', response.data.user_address);
+                        const token = response.data.accessToken;
+                        Cookies.set('accessToken', token, { expires: 1 });
                         await Swal.fire({
                             title: 'Thành công!',
                             text: 'Bạn đã đăng nhập thành công.',
                             icon: 'success',
                             timer: 1500,
-                            showConfirmButton: false, 
+                            showConfirmButton: false,
                         });
-                        store.dispatch('login', {
-                            userType: 'user',
-                            user_name: response.data.user.user_name,
-                            user_id: response.data.user._id,
-                        }
-                        );
                         $('#SignInModal').modal('hide');
                         window.location.reload();
                     }
@@ -105,8 +105,8 @@ export default {
                             title: 'Thất bại',
                             text: 'Tên người dùng hoặc mật khẩu không đúng.',
                             icon: 'error',
-                            timer: 1500, 
-                            showConfirmButton: false, 
+                            timer: 1500,
+                            showConfirmButton: false,
                         });
                     } else {
                         console.error('Lỗi khi login:', error);

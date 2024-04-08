@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid bg-info">
+  <div class="container-fluid bg-primary">
     <div class="row">
       <div class="col-1 d-flex d-sm-none align-items-center justify-content-center">
         <span @click="showDrawerMenu()">
@@ -7,14 +7,14 @@
         </span>
       </div>
       <div class="col-10 col-sm-9 d-flex align-items-center justify-content-center justify-content-sm-start">
-        <img width="120px" height="60px" src="../../assets/logo.jpg" class="mx-3" alt="ảnh admin" />
-        <span class="d-none d-sm-flex">Quản Trị</span>
+        <img width="120px" height="60px" src="../../assets/images/logo.jpg" class="mx-3" alt="ảnh admin" />
+        <span class="d-none d-sm-flex text-white">Quản Trị</span>
       </div>
       <div class="col-sm-3 d-none d-sm-flex align-items-center justify-content-sm-end">
         <div class="dropdown">
-          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <div class="dropdown-toggle text-white" data-bs-toggle="dropdown" aria-expanded="false">
             Admin
-          </button>
+          </div>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" @click="logout" href="#">Đăng Xuất</a></li>
             <li><a class="dropdown-item" href="#">Another action</a></li>

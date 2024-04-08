@@ -13,13 +13,13 @@
                 <p><i class="fa-solid fa-location-dot fs-5"></i> : Khu II, Đ. 3 Tháng 2, Xuân Khánh, Ninh Kiều, Cần Thơ</p>
                 <p><i class="fa-solid fa-envelope fs-5"></i> : bookstore112233@gmail.com</p>
                 <a href="#" class="text-decoration-none">
-                    <i class="fa-brands fa-facebook fs-3 icon_footer_contact"></i>
+                    <i class="fa-brands fa-facebook fs-3 text-white icon_footer_contact"></i>
                 </a>
                 <a href="#" class="text-decoration-none">
-                    <i class="fa-brands fa-youtube ms-3 fs-3 icon_footer_contact"></i>
+                    <i class="fa-brands fa-youtube ms-3 fs-3 text-white icon_footer_contact"></i>
                 </a>
                 <a href="#" class="text-decoration-none">
-                    <i class="fa-brands fa-twitter ms-3 fs-3 icon_footer_contact"></i>
+                    <i class="fa-brands fa-twitter ms-3 fs-3 text-white icon_footer_contact"></i>
                 </a>
             </div>
 
@@ -74,9 +74,9 @@
                 <h5 class="mb-4">Bản đồ</h5>
                 <hr class="text-white ">
                 <div id="map">
-                    <!-- <iframe class="w-100"
+                    <iframe class="w-100"
                         src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d245.55804535365044!2d105.76820174754104!3d10.02274050793034!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1svi!2s!4v1675434954291!5m2!1svi!2s"
-                        style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> -->
+                        style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
             <div class="text-white text-center mx-auto">

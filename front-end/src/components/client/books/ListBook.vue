@@ -78,7 +78,7 @@
                         </p>
                     </div>
                     <div class="card-footer mx-auto bg-white">
-                        <a href="" @click.prevent="addToCart(book._id, user_id, 1)" class="btn btn-primary">
+                        <a href="" @click.prevent="addToCart(book._id)" class="btn btn-primary">
                             <i class="fas fa-solid fa-cart-plus"></i>
                             Thêm vào giỏ
                         </a>
@@ -94,6 +94,7 @@
 import { ref, onMounted, watchEffect } from 'vue';
 import { useStore } from 'vuex';
 import Swal from 'sweetalert2';
+import Cookies from 'js-cookie';
 
 export default {
     props: {
@@ -115,7 +116,6 @@ export default {
         const publisherName = ref('');
         const store = useStore();
         const isLoggedIn = sessionStorage.getItem('isLoggedIn');
-        const user_id = sessionStorage.getItem('user_id');
 
         // Get books
         const getBooks = async () => {
@@ -130,8 +130,9 @@ export default {
         }
 
         // Add to cart
-        const addToCart = async (bookId, userId, quantity) => {
-            if (!isLoggedIn || !userId) {
+        const addToCart = async (bookId) => {
+            const token = Cookies.get('accessToken');
+            if (!token) {
                 await Swal.fire({
                     title: 'Bạn chưa đăng nhập',
                     text: 'Vui lòng đăng nhập để tiếp tục',
@@ -141,7 +142,11 @@ export default {
                 });
                 return;
             }
-            await axios.post('http://127.0.0.1:3000/api/cart', { book_id: bookId, user_id: userId, quantity })
+            await axios.post('http://127.0.0.1:3000/api/cart', { book_id: bookId, quantity: 1 }, {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
                 .then((response) => {
                     if (response.status == 200) {
                         alert('da them vao gio hang');
@@ -212,7 +217,6 @@ export default {
             addToCart,
             books,
             isLoggedIn,
-            user_id,
             publisherName,
             getBooksFilterNxb,
             publisher_Id,

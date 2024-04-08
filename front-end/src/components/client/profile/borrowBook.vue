@@ -32,7 +32,7 @@
             <div class="tab-pane fade show active border" id="nav-cxn-pane" role="tabpanel"
                 aria-labelledby="nav-cxn-tab">
                 <div class="row mx-2 my-2" v-for="borrow in userWithBorrows" :key="borrow._id">
-                    <div class="card" v-if="borrow.status === 'Chờ xác nhận'">
+                    <div class="card" v-if="borrow.status === 'Đang chờ xác nhận'">
                         <div class="row card-header">
                             <div>
                                 <a class="btn btn-danger float-end" @click="cancelBorrow(borrow._id, $event)"
@@ -40,7 +40,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div v-if="borrow.status === 'Chờ xác nhận'" v-for="book in borrow.books" :key="book._id"
+                            <div v-if="borrow.status === 'Đang chờ xác nhận'" v-for="book in borrow.books" :key="book._id"
                                 class="row">
                                 <div class="col-3">
                                     <a href="">
@@ -63,12 +63,12 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ book.book_info.book_price }}</span>
+                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price) }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12"> TỔNG GIÁ:
-                                            <span class="price text-danger">{{ book.total_price }}</span>
+                                            <span class="price text-danger">{{ formatPrice(book.total_price) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -106,12 +106,12 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ book.book_info.book_price }}</span>
+                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price) }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12"> TỔNG GIÁ:
-                                            <span class="price text-danger">{{ book.total_price }}</span>
+                                            <span class="price text-danger">{{ formatPrice(book.total_price) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -159,12 +159,12 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ book.book_info.book_price }}</span>
+                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price) }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12"> TỔNG GIÁ:
-                                            <span class="price text-danger">{{ book.total_price }}</span>
+                                            <span class="price text-danger">{{ formatPrice(book.total_price) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -202,12 +202,12 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ book.book_info.book_price }}</span>
+                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price) }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12"> TỔNG GIÁ:
-                                            <span class="price text-danger">{{ book.total_price }}</span>
+                                            <span class="price text-danger">{{ formatPrice(book.total_price) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -223,8 +223,7 @@
                 <div class="row mx-2 my-2" v-for="borrow in userWithBorrows" :key="borrow._id">
                     <div class="card" v-if="borrow.status === 'Đã hủy'">
                         <div class="card-body">
-                            <div  v-for="book in borrow.books" :key="book._id"
-                                class="row">
+                            <div v-for="book in borrow.books" :key="book._id" class="row">
                                 <div class="col-3">
                                     <a href="">
                                         <img class="img-fluid"
@@ -246,12 +245,12 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ book.book_info.book_price }}</span>
+                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price) }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12"> TỔNG GIÁ:
-                                            <span class="price text-danger">{{ book.total_price }}</span>
+                                            <span class="price text-danger">{{ formatPrice(book.total_price) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -268,10 +267,10 @@
 <script>
 import { ref, onMounted } from 'vue';
 import Swal from 'sweetalert2';
-export default {
+import Cookies from 'js-cookie';
 
+export default {
     setup() {
-        const user_id = sessionStorage.getItem('user_id');
         const userWithBorrows = ref([]);
         const cxnCount = ref(0);
         const dmCount = ref(0);
@@ -279,12 +278,20 @@ export default {
         const dtCount = ref(0);
         const dhCount = ref(0);
         const getBorrowWithId = async () => {
-            const response = await axios.get(`http://localhost:3000/api/borrows/users/${user_id}`)
-            if (response.status == 200) {
-                console.log(response.data);
-                userWithBorrows.value = response.data;
-                countBorrows();
+            const token = Cookies.get('accessToken');
+            if (token) {
+                const response = await axios.get('http://127.0.0.1:3000/api/borrows/user', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                if (response.status == 200) {
+                    console.log(response.data);
+                    userWithBorrows.value = response.data;
+                    countBorrows();
+                }
             }
+
         }
 
         const countBorrows = () => {
@@ -310,12 +317,15 @@ export default {
             }
         }
 
+        const formatPrice = (price) => {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        }
+
         onMounted(() => {
             getBorrowWithId()
         })
 
         return {
-            user_id,
             userWithBorrows,
             cxnCount,
             dmCount,
@@ -324,6 +334,7 @@ export default {
             dhCount,
             getBorrowWithId,
             cancelBorrow,
+            formatPrice
         }
     }
 }

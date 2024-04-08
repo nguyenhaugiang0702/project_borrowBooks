@@ -69,6 +69,7 @@ import { computed, onMounted, ref, } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
+import Cookies from 'js-cookie';
 
 export default {
     setup(props, { emit }) {
@@ -82,8 +83,13 @@ export default {
         const router = useRouter();
 
         const getCarts = async () => {
-            if (user_id) {
-                await axios.get(`http://127.0.0.1:3000/api/cart/${user_id}`)
+            const token = Cookies.get('accessToken');
+            if (token) {
+                await axios.get('http://127.0.0.1:3000/api/cart/', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
                     .then((response) => {
                         if (response.status == 200) {
                             booksInCart.value = response.data;
@@ -130,7 +136,8 @@ export default {
 
         const deleteBook = async (book_id, event) => {
             event.preventDefault();
-            if (user_id) {
+            const token = Cookies.get('accessToken');
+            if (token) {
                 const isConfirmed = await Swal.fire({
                     title: 'Xác nhận xóa',
                     text: 'Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?',
@@ -140,7 +147,11 @@ export default {
                     cancelButtonText: 'Hủy bỏ',
                 })
                 if (isConfirmed.isConfirmed) {
-                    await axios.delete(`http://127.0.0.1:3000/api/cart/${user_id}/${book_id}`)
+                    await axios.delete(`http://127.0.0.1:3000/api/cart/${book_id}`, {
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    })
                         .then((response) => {
                             if (response.status == 200) {
                                 getCarts();
@@ -184,11 +195,11 @@ export default {
                                         quantity: book.quantity,
                                         total_price: book.total_price
                                     });
-                                }else{
-                                    return ;
+                                } else {
+                                    return;
                                 }
-                            }else{
-                                return ;
+                            } else {
+                                return;
                             }
                         }
                     }
@@ -199,7 +210,8 @@ export default {
 
         const deleteAllBook = async (event) => {
             event.preventDefault();
-            if (user_id) {
+            const token = Cookies.get('accessToken');
+            if (token) {
                 const isConfirmed = await Swal.fire({
                     title: 'Xác nhận xóa',
                     text: 'Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi giỏ hàng?',
@@ -210,7 +222,11 @@ export default {
                 });
 
                 if (isConfirmed.isConfirmed) {
-                    await axios.delete(`http://127.0.0.1:3000/api/cart/${user_id}`, user_id)
+                    await axios.delete('http://127.0.0.1:3000/api/cart/deleteAll', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    })
                         .then(async (response) => {
                             if (response.status == 200) {
                                 await Swal.fire({

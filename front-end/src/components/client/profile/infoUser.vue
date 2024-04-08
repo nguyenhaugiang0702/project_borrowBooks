@@ -6,18 +6,15 @@
         <div class="col-6 ms-4">
             <div class="my-4 form-group">
                 <label for="user_name" class="fw-bold">Tên đầy đủ:</label>
-                <input type="text" :value="userInfo.user_name" readonly name="user_name"
-                    class="form-control">
+                <input type="text" :value="userInfo.user_name" readonly name="user_name" class="form-control">
             </div>
             <div class="my-4 form-group">
                 <label for="user_gender" class="fw-bold">Giới tính:</label>
-                <input type="text" :value="userInfo.user_gender" class="form-control" readonly 
-                    name="user_gender">
+                <input type="text" :value="userInfo.user_gender" class="form-control" readonly name="user_gender">
             </div>
             <div class="my-4 form-group">
                 <label for="user_phone" class="fw-bold">Số điện thoại:</label>
-                <input type="text" :value="userInfo.user_phone" class="form-control" readonly 
-                    name="user_phone">
+                <input type="text" :value="userInfo.user_phone" class="form-control" readonly name="user_phone">
             </div>
             <div class="my-4 form-group">
                 <button type="submit" class="btn btn-success" name="updateAvatar">Lưu</button>
@@ -27,12 +24,17 @@
 </template>
 <script>
 import { ref, onMounted } from 'vue';
+import Cookies from 'js-cookie';
 export default {
     setup() {
-        const user_id = sessionStorage.getItem('user_id');
         const userInfo = ref({});
         const getUserInfo = async () => {
-            await axios.get(`http://localhost:3000/api/users/${user_id}`)
+            const token = Cookies.get('accessToken');
+            await axios.get('http://localhost:3000/api/users/getOneUser', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
                 .then((response) => {
                     if (response.status == 200) {
                         userInfo.value = response.data;
@@ -47,7 +49,6 @@ export default {
         })
 
         return {
-            user_id,
             userInfo,
             getUserInfo,
         }

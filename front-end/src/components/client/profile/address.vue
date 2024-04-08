@@ -48,15 +48,17 @@
 <script>
 import { ref, onMounted } from 'vue'
 import Swal from 'sweetalert2';
+import Cookies from 'js-cookie';
 export default {
     setup() {
-
-        const user_id = sessionStorage.getItem('user_id');
-
         const userInfo_address = ref({});
-
         const getOneAddress = async () => {
-            await axios.get(`http://localhost:3000/api/users/${user_id}`)
+            const token = Cookies.get('accessToken');
+            await axios.get('http://localhost:3000/api/users/getOneUser', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
                 .then((response) => {
                     if (response.status == 200) {
                         userInfo_address.value = response.data
@@ -67,8 +69,13 @@ export default {
         }
 
         const updateAddress = async () => {
+            const token = Cookies.get('accessToken');
             const textareaValue = document.getElementById('user_address').value;
-            const response = await axios.put(`http://localhost:3000/api/users/${user_id}`, { user_address: textareaValue })
+            const response = await axios.put('http://localhost:3000/api/users/updateOneUser', { user_address: textareaValue }, {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
             if (response.status == 200) {
                 await Swal.fire({
                     title: 'Cập nhật địa chỉ thành công',
@@ -87,7 +94,6 @@ export default {
         })
 
         return {
-            user_id,
             userInfo_address,
             updateAddress,
             getOneAddress,

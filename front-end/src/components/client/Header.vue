@@ -32,7 +32,7 @@
                         </div>
                         <hr>
                     </li>
-                    <li class="row" v-if="user_id">
+                    <li class="row" v-if="user_name">
                         <router-link :to="{ name: 'cart', params: { cartData: JSON.stringify(booksInCart.value) } }"
                             class="btn btn-warning col-sm-4 mx-auto">Giỏ Hàng</router-link>
                         <router-link :to="{ name: 'checkout' }" class="btn btn-success col-sm-4 mx-auto">Thanh
@@ -44,7 +44,7 @@
 
             <!-- Tài Khoản -->
             <div class="col-sm-2 dropdown">
-                <div v-if="isLoggedIn && userType === 'user'" class=" my-4 z-2">
+                <div v-if="user_name" class=" my-4 z-2">
                     <div class="dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                             aria-expanded="false">
@@ -52,7 +52,8 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <router-link class="dropdown-item text-decoration-none" :to="{name: 'profile'}">Tài khoản</router-link>
+                                <router-link class="dropdown-item text-decoration-none" :to="{ name: 'profile' }">Tài
+                                    khoản</router-link>
                             </li>
                             <li><a class="dropdown-item" href="#">Another action</a></li>
                             <li>
@@ -95,6 +96,7 @@ import Search from './Search.vue';
 import { useStore } from 'vuex';
 import { computed, onMounted, ref } from 'vue';
 import Swal from 'sweetalert2';
+import Cookies from 'js-cookie';
 
 export default {
     components: {
@@ -104,20 +106,20 @@ export default {
     },
     setup() {
         const store = useStore();
-        const isLoggedIn = computed(() => store.getters.isLoggedIn);
-        const userType = computed(() => store.getters.userType);
-        const user_name = computed(() => store.getters.user_name);
+        // const isLoggedIn = computed(() => store.getters.isLoggedIn);
+        // const userType = computed(() => store.getters.userType);
+        // const user_name = computed(() => store.getters.user_name);
 
-        onMounted(() => {
-            // Thực hiện các hành động khi component được mounted
-            const sessionLoginStatus = sessionStorage.getItem('isLoggedIn');
-            const sessionuserType = sessionStorage.getItem('userType');
-            const sessionUserName = sessionStorage.getItem('user_name');
+        // onMounted(() => {
+        //     // Thực hiện các hành động khi component được mounted
+        //     const sessionLoginStatus = sessionStorage.getItem('isLoggedIn');
+        //     const sessionuserType = sessionStorage.getItem('userType');
+        //     const sessionUserName = sessionStorage.getItem('user_name');
 
-            if (sessionLoginStatus !== null && sessionuserType !== null) {
-                store.commit('setLoggedIn', { isLoggedIn: JSON.parse(sessionLoginStatus), userType: sessionuserType, user_name: sessionUserName });
-            }
-        });
+        //     if (sessionLoginStatus !== null && sessionuserType !== null) {
+        //         store.commit('setLoggedIn', { isLoggedIn: JSON.parse(sessionLoginStatus), userType: sessionuserType, user_name: sessionUserName });
+        //     }
+        // });
 
         const logOut = () => {
             Swal.fire({
@@ -130,6 +132,8 @@ export default {
             }).then((result) => {
                 if (result.isConfirmed) {
                     sessionStorage.clear();
+                    document.cookie = 'accessToken=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;';
+                    delete axios.defaults.headers.common['Authorization'];
                     window.location.reload();
                 }
             });
@@ -137,8 +141,13 @@ export default {
 
         const booksInCart = ref([]);
         const getCarts = async () => {
-            if (user_id) {
-                await axios.get(`http://127.0.0.1:3000/api/cart/${user_id}`)
+            const token = Cookies.get('accessToken');
+            if (token) {
+                await axios.get('http://127.0.0.1:3000/api/cart', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
                     .then((response) => {
                         if (response.status == 200) {
                             booksInCart.value = response.data;
@@ -166,14 +175,15 @@ export default {
             return booksArray.reduce((total, book) => total + book.quantity, 0);
         });
 
-        const user_id = sessionStorage.getItem('user_id');
+        // const user_id = sessionStorage.getItem('user_id');
+        const user_name = sessionStorage.getItem('user_name');
 
         return {
-            isLoggedIn,
-            userType,
+            // isLoggedIn,
+            // userType,
             user_name,
             booksInCart,
-            user_id,
+            // user_id,
             logOut,
             getCarts,
             totalQuantityInCart,

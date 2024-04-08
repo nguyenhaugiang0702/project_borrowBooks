@@ -46,7 +46,7 @@
                                 </router-link>
                             </div>
                             <div class="row mt-4">
-                                <button @click.prevent="addToCart(book._id, user_id, quantity, $event)" type="submit"
+                                <button @click.prevent="addToCart(book._id, quantity, $event)" type="submit"
                                     name="themvaogio" class="btn btn-lg btn-primary text-white ms-3 col-md-4 ">Thêm vào
                                     giỏ</button>
                             </div>
@@ -131,7 +131,7 @@
                 <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">...</div>
             </div>
 
-            
+
         </div>
     </div>
 
@@ -140,11 +140,11 @@
 import { useRoute } from 'vue-router';
 import { onMounted, ref, watchEffect } from 'vue';
 import Swal from 'sweetalert2';
+import Cookies from 'js-cookie';
+
 export default {
     setup() {
         const route = useRoute();
-        const isLoggedIn = sessionStorage.getItem('isLoggedIn');
-        const user_id = sessionStorage.getItem('user_id');
         const book = ref();
         const quantity = ref(1);
 
@@ -170,8 +170,9 @@ export default {
             getBookWithId(bookId);
         })
 
-        const addToCart = async (bookId, userId, quantity) => {
-            if (!isLoggedIn && !userId) {
+        const addToCart = async (bookId, quantity) => {
+            const token = Cookies.get('accessToken');
+            if (!token) {
                 await Swal.fire({
                     title: 'Bạn chưa đăng nhập',
                     text: 'Vui lòng đăng nhập để tiếp tục',
@@ -181,7 +182,11 @@ export default {
                 });
                 return;
             }
-            await axios.post('http://127.0.0.1:3000/api/cart', { book_id: bookId, user_id: userId, quantity: quantity })
+            await axios.post('http://127.0.0.1:3000/api/cart', { book_id: bookId, quantity: quantity }, {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
                 .then((response) => {
                     if (response.status == 200) {
                         alert('da them vao gio hang');
@@ -193,13 +198,10 @@ export default {
                 })
         }
 
-
-
         return {
             getBookWithId,
             book,
             addToCart,
-            user_id,
             quantity,
             updateQuantity
         }

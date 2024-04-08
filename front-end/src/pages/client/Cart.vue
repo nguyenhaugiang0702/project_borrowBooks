@@ -16,7 +16,8 @@
                 <div class="card-header row">Tổng Tiền Phải Thanh Toán:</div>
                 <div class="card-body fw-bold">
                     <span>Tổng tiền : </span>
-                    <span class="price text-danger">{{ selectedBooksTotalPrice ? formatPrice(selectedBooksTotalPrice) : '0 đ' }}</span>
+                    <span class="price text-danger">{{ selectedBooksTotalPrice ? formatPrice(selectedBooksTotalPrice) :
+                        '0 đ' }}</span>
                 </div>
             </div>
             <div class="d-flex justify-content-end">
@@ -31,7 +32,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import CartTable from '../../components/client/carts/CartTable.vue';
-
+import Cookies from 'js-cookie';
 
 export default {
     components: {
@@ -39,7 +40,6 @@ export default {
     },
     setup() {
         const router = useRouter();
-        const user_id = sessionStorage.getItem('user_id');
         const selectedBooksArray = ref([]);
 
         const handleSelectedBooksUpdated = async (newSelectedBooksArray) => {
@@ -60,7 +60,12 @@ export default {
             }
             const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', selectedBooksArray.value)
             if (res.status == 204) {
-                await await axios.post('http://127.0.0.1:3000/api/checkout', { selectedBooks: selectedBooksArray.value, user_id })
+                const token = Cookies.get('accessToken');
+                await await axios.post('http://127.0.0.1:3000/api/checkout', { selectedBooks: selectedBooksArray.value }, {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
                     .then((response) => {
                         if (response.status == 200) {
                             router.push({ name: 'checkout' });
