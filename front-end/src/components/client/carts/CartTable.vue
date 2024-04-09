@@ -108,14 +108,14 @@ export default {
         const increaseQuantity = (book) => {
             document.getElementById(`inputQuantity_${book.book_id}`).value++;
             updateTotalPrice(book);
-            GotoCheckOut();
+            propsBooksGotoCart();
         }
 
         const decreaseQuantity = (book, event) => {
             if (document.getElementById(`inputQuantity_${book.book_id}`).value > 1) {
                 document.getElementById(`inputQuantity_${book.book_id}`).value--;
                 updateTotalPrice(book);
-                GotoCheckOut();
+                propsBooksGotoCart();
             } else {
                 if (user_id) {
                     deleteBook(book.book_id, event);
@@ -131,7 +131,7 @@ export default {
             const newQuantity = event.target.value;
             book.quantity = newQuantity;
             updateTotalPrice(book);
-            GotoCheckOut();
+            propsBooksGotoCart();
         };
 
         const deleteBook = async (book_id, event) => {
@@ -170,10 +170,10 @@ export default {
             for (const book of booksInCart.value.books) {
                 selectedBooks.value[book.book_id] = selectAll.value;
             }
-            GotoCheckOut();
+            propsBooksGotoCart();
         };
 
-        const GotoCheckOut = () => {
+        const propsBooksGotoCart = () => {
             const selectedBooksArray = [];
             const booksArray = booksInCart.value.books;
             if (Array.isArray(booksArray) && booksArray.length > 0) {
@@ -240,7 +240,23 @@ export default {
                             }
                         })
                         .catch((error) => {
-                            console.error(error);
+                            if (error.response && error.response.status === 401) {
+                                Swal.fire({
+                                    title: 'Phiên xử lý hết hạn',
+                                    text: 'Vui lòng đăng nhập để tiếp tục',
+                                    icon: 'warning',
+                                    timer: 1500,
+                                    showConfirmButton: true,
+                                });
+                            } else if (error.response && error.response.status === 403) {
+                                Swal.fire({
+                                    title: 'Bạn chưa đăng nhập',
+                                    text: 'Vui lòng đăng nhập để tiếp tục',
+                                    icon: 'warning',
+                                    timer: 1500,
+                                    showConfirmButton: true,
+                                });
+                            }
                         })
                 }
 
@@ -248,7 +264,7 @@ export default {
         }
 
         const handleCheckboxChange = () => {
-            GotoCheckOut();
+            propsBooksGotoCart();
         }
 
         const formatPrice = (price) => {
@@ -266,7 +282,7 @@ export default {
             increaseQuantity,
             decreaseQuantity,
             deleteBook,
-            GotoCheckOut,
+            propsBooksGotoCart,
             deleteAllBook,
             handleCheckboxChange,
             formatPrice

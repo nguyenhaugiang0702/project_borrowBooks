@@ -12,7 +12,7 @@
       </div>
       <div class="col-sm-3 d-none d-sm-flex align-items-center justify-content-sm-end">
         <div class="dropdown">
-          <div class="dropdown-toggle text-white" data-bs-toggle="dropdown" aria-expanded="false">
+          <div class="dropdown-toggle text-white  " data-bs-toggle="dropdown" aria-expanded="false">
             Admin
           </div>
           <ul class="dropdown-menu">

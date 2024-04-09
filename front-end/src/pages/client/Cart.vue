@@ -33,6 +33,7 @@ import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import CartTable from '../../components/client/carts/CartTable.vue';
 import Cookies from 'js-cookie';
+import { error } from 'jquery';
 
 export default {
     components: {
@@ -58,31 +59,50 @@ export default {
                 });
                 return;
             }
-            const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', selectedBooksArray.value)
-            if (res.status == 204) {
-                const token = Cookies.get('accessToken');
-                await await axios.post('http://127.0.0.1:3000/api/checkout', { selectedBooks: selectedBooksArray.value }, {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                })
-                    .then((response) => {
-                        if (response.status == 200) {
-                            router.push({ name: 'checkout' });
+            try {
+                const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', selectedBooksArray.value);
+                if (res.status == 200) {
+                    try {
+                        const token = Cookies.get('accessToken');
+                        await axios.post('http://127.0.0.1:3000/api/checkout', { selectedBooks: selectedBooksArray.value }, {
+                            headers: {
+                                'Authorization': 'Bearer ' + token
+                            }
+                        });
+                        router.push({ name: 'checkout' });
+                    } catch (error) {
+                        if (error.response && error.response.status === 401) {
+                            Swal.fire({
+                                title: 'Phiên xử lý hết hạn',
+                                text: 'Vui lòng đăng nhập để tiếp tục',
+                                icon: 'warning',
+                                timer: 1500,
+                                showConfirmButton: true,
+                            });
+                        } else if (error.response && error.response.status === 403) {
+                            Swal.fire({
+                                title: 'Bạn chưa đăng nhập',
+                                text: 'Vui lòng đăng nhập để tiếp tục',
+                                icon: 'warning',
+                                timer: 1500,
+                                showConfirmButton: true,
+                            });
                         }
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    })
-            } else if (res.status == 200) {
-                await Swal.fire({
-                    title: 'Lỗi',
-                    text: res.data.message,
-                    icon: 'error',
-                    timer: 1500,
-                    showConfirmButton: false,
-                });
-                return;
+                    }
+
+                }
+            } catch (error) {
+                if (error.response && error.response.status === 403) {
+                    await Swal.fire({
+                        title: 'Lỗi',
+                        text: error.response.data.message,
+                        icon: 'error',
+                        timer: 1500,
+                        showConfirmButton: false,
+                    });
+                } else {
+                    console.log(error);
+                }
             }
         }
 

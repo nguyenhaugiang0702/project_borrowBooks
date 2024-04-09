@@ -40,8 +40,8 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div v-if="borrow.status === 'Đang chờ xác nhận'" v-for="book in borrow.books" :key="book._id"
-                                class="row">
+                            <div v-if="borrow.status === 'Đang chờ xác nhận'" v-for="book in borrow.books"
+                                :key="book._id" class="row">
                                 <div class="col-3">
                                     <a href="">
                                         <img class="img-fluid"
@@ -63,7 +63,8 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price) }}</span>
+                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price)
+                                                }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
@@ -106,7 +107,8 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price) }}</span>
+                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price)
+                                                }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
@@ -159,7 +161,8 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price) }}</span>
+                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price)
+                                                }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
@@ -202,7 +205,8 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price) }}</span>
+                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price)
+                                                }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
@@ -245,7 +249,8 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price) }}</span>
+                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price)
+                                                }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
@@ -303,18 +308,39 @@ export default {
         }
 
         const cancelBorrow = async (borrowId, e) => {
-            e.preventDefault();
-            const response = await axios.put(`http://localhost:3000/api/borrows/${borrowId}`, { status: 'Yêu cầu hủy' })
-            if (response.status == 200) {
-                await Swal.fire({
-                    title: 'Yêu cầu hủy đã được gửi đi',
-                    text: 'Vui lòng chờ phản hồi',
-                    icon: 'success',
-                    confirmButtonText: 'Đồng ý',
-                    timer: 1500,
-                });
-                window.location.reload();
+            try {
+                e.preventDefault();
+                const response = await axios.put(`http://localhost:3000/api/borrows/${borrowId}`, { status: 'Yêu cầu hủy' })
+                if (response.status == 200) {
+                    await Swal.fire({
+                        title: 'Yêu cầu hủy đã được gửi đi',
+                        text: 'Vui lòng chờ phản hồi',
+                        icon: 'success',
+                        confirmButtonText: 'Đồng ý',
+                        timer: 1500,
+                    });
+                    window.location.reload();
+                }
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    Swal.fire({
+                        title: 'Phiên xử lý hết hạn',
+                        text: 'Vui lòng đăng nhập để tiếp tục',
+                        icon: 'warning',
+                        timer: 1500,
+                        showConfirmButton: true,
+                    });
+                } else if (error.response && error.response.status === 403) {
+                    Swal.fire({
+                        title: 'Bạn chưa đăng nhập',
+                        text: 'Vui lòng đăng nhập để tiếp tục',
+                        icon: 'warning',
+                        timer: 1500,
+                        showConfirmButton: true,
+                    });
+                }
             }
+
         }
 
         const formatPrice = (price) => {

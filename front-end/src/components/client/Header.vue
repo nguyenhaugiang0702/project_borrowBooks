@@ -32,7 +32,7 @@
                         </div>
                         <hr>
                     </li>
-                    <li class="row" v-if="user_name">
+                    <li class="row" v-if="userInfo.user_name">
                         <router-link :to="{ name: 'cart', params: { cartData: JSON.stringify(booksInCart.value) } }"
                             class="btn btn-warning col-sm-4 mx-auto">Giỏ Hàng</router-link>
                         <router-link :to="{ name: 'checkout' }" class="btn btn-success col-sm-4 mx-auto">Thanh
@@ -44,11 +44,11 @@
 
             <!-- Tài Khoản -->
             <div class="col-sm-2 dropdown">
-                <div v-if="user_name" class=" my-4 z-2">
+                <div v-if="userInfo.user_name" class=" my-4 z-2">
                     <div class="dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                             aria-expanded="false">
-                            <i class="fa-solid fa-user fs-3 mt-1"></i> {{ user_name }}
+                            <i class="fa-solid fa-user fs-3 mt-1"></i> {{ userInfo.user_name }}
                         </a>
                         <ul class="dropdown-menu">
                             <li>
@@ -105,21 +105,42 @@ export default {
         Search
     },
     setup() {
-        const store = useStore();
-        // const isLoggedIn = computed(() => store.getters.isLoggedIn);
-        // const userType = computed(() => store.getters.userType);
-        // const user_name = computed(() => store.getters.user_name);
-
-        // onMounted(() => {
-        //     // Thực hiện các hành động khi component được mounted
-        //     const sessionLoginStatus = sessionStorage.getItem('isLoggedIn');
-        //     const sessionuserType = sessionStorage.getItem('userType');
-        //     const sessionUserName = sessionStorage.getItem('user_name');
-
-        //     if (sessionLoginStatus !== null && sessionuserType !== null) {
-        //         store.commit('setLoggedIn', { isLoggedIn: JSON.parse(sessionLoginStatus), userType: sessionuserType, user_name: sessionUserName });
-        //     }
-        // });
+        const userInfo = ref({});
+        const getUser = async () => {
+            const token = Cookies.get('accessToken');
+            await axios.get('http://localhost:3000/api/users/getOneUser', {
+                headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+            })
+                .then((response) => {
+                    if (response.status == 200) {
+                        userInfo.value = response.data;
+                    }
+                })
+                .catch((error) => {
+                    if (error.response && error.response.status === 403) {
+                        Swal.fire({
+                            title: 'Bạn chưa đăng nhập',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                        window.location.reload();
+                    } else if (error.response && error.response.status === 401) {
+                        Swal.fire({
+                            title: 'Phiên xử lý hết hạn',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    } else {
+                        console.error('Lỗi khi lấy cart:', error);
+                    }
+                })
+        }
 
         const logOut = () => {
             Swal.fire({
@@ -133,6 +154,7 @@ export default {
                 if (result.isConfirmed) {
                     sessionStorage.clear();
                     document.cookie = 'accessToken=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;';
+                    document.cookie = 'user_name=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;';
                     delete axios.defaults.headers.common['Authorization'];
                     window.location.reload();
                 }
@@ -154,13 +176,92 @@ export default {
                         }
                     })
                     .catch((error) => {
-                        console.log(error);
+                        if (error.response && error.response.status === 403) {
+                            Swal.fire({
+                                title: 'Bạn chưa đăng nhập',
+                                text: 'Vui lòng đăng nhập để tiếp tục',
+                                icon: 'warning',
+                                timer: 1500,
+                                showConfirmButton: true,
+                            });
+                            window.location.reload();
+                        } else if (error.response && error.response.status === 401) {
+                            Swal.fire({
+                                title: 'Phiên xử lý hết hạn',
+                                text: 'Vui lòng đăng nhập để tiếp tục',
+                                icon: 'warning',
+                                timer: 1500,
+                                showConfirmButton: true,
+                            });
+                        } else {
+                            console.error('Lỗi khi lấy cart:', error);
+                        }
+
                     })
             }
         }
 
+        // function checkCookieExpiration(cookieName) {
+        //     const cookieValue = Cookies.get(cookieName, { raw: true });
+        //     if (!cookieValue) {
+        //         console.log(111);
+        //         return false;
+        //     }
+        //     const cookieParts = cookieValue.split(';');
+        //     for (const part of cookieParts) {
+        //         const [key, value] = part.trim().split('=');
+        //         if (key === 'expires') {
+        //             // Lấy thời gian hết hạn của cookie
+        //             const expirationTime = new Date(value);
+        //             const currentTime = new Date();
+        //             // So sánh thời gian hết hạn với thời gian hiện tại
+        //             if (expirationTime <= currentTime) {
+        //                 // Cookie đã hết hạn
+        //                 return false;
+        //             } else {
+        //                 // Cookie còn hiệu lực
+        //                 return true;
+        //             }
+        //         }
+        //     }
+        //     // Không tìm thấy thông tin về thời hạn trong cookie
+        //     return false;
+        // }
+
+        // function startContinuousChecking(cookieName, interval) {
+        //     setInterval(() => {
+        //         const isUserCookieValid = checkCookieExpiration(cookieName);
+        //         console.log('Is user cookie valid?', isUserCookieValid);
+        //     }, interval);
+        // }
+
+        // // Bắt đầu kiểm tra liên tục với khoảng thời gian là 1 phút (60000 milliseconds)
+        // startContinuousChecking('user_name', 60000);
+
+        // const checkTokenExpiration = () => {
+        //     const tokenExpiration = Cookies.get('user_name');
+        //     if (tokenExpiration) {
+        //         const currentTime = Math.floor(Date.now() / 1000); // Thời gian hiện tại tính bằng giây
+        //         if (currentTime > parseInt(tokenExpiration)) {
+        //             // Token đã hết hạn
+        //             // Thực hiện các xử lý khi token hết hạn, ví dụ: hiển thị thông báo yêu cầu người dùng đăng nhập lại
+        //             Swal.fire({
+        //                 title: 'Phiên xử lý hết hạn',
+        //                 text: 'Vui lòng đăng nhập để tiếp tục',
+        //                 icon: 'warning',
+        //                 timer: 1500,
+        //                 showConfirmButton: true,
+        //             }).then(() => {
+        //                 // Chuyển hướng người dùng đến trang đăng nhập
+        //                 // window.location.href = '/login'; // Hoặc sử dụng router.push để chuyển hướng trong Vue Router
+        //             });
+        //         }
+        //     }
+        // };
+
         onMounted(() => {
             getCarts();
+            getUser();
         })
 
         const totalQuantityInCart = computed(() => {
@@ -175,18 +276,16 @@ export default {
             return booksArray.reduce((total, book) => total + book.quantity, 0);
         });
 
-        // const user_id = sessionStorage.getItem('user_id');
-        const user_name = sessionStorage.getItem('user_name');
-
         return {
-            // isLoggedIn,
-            // userType,
-            user_name,
             booksInCart,
-            // user_id,
             logOut,
             getCarts,
             totalQuantityInCart,
+            getUser,
+            userInfo
+            // checkTokenExpiration,
+            // checkCookieExpiration,
+            // isUserCookieValid
         };
     }
 

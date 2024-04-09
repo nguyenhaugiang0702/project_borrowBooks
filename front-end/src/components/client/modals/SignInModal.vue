@@ -81,11 +81,10 @@ export default {
                             user_name: '',
                             user_password: '',
                         }
-                        sessionStorage.setItem('user_name', response.data.user_name);
-                        sessionStorage.setItem('user_phone', response.data.user_phone);
-                        sessionStorage.setItem('user_address', response.data.user_address);
                         const token = response.data.accessToken;
-                        Cookies.set('accessToken', token, { expires: 1 });
+                        Cookies.set('accessToken', token, { expires: 60 });
+                        const user_name = response.data.user_name;
+                        Cookies.set('user_name', user_name, { expires: 60 });
                         await Swal.fire({
                             title: 'Thành công!',
                             text: 'Bạn đã đăng nhập thành công.',
