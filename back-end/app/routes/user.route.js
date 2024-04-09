@@ -17,7 +17,6 @@ router
     .post(users.create)
     .delete(users.deleteALL);
 
-
 router
     .route("/login")
     .post(users.loginUser);

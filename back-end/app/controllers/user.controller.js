@@ -44,13 +44,11 @@ exports.loginUser = async (req, res, next) => {
     try {
         const userService = new UserService(MongoDB.client);
         const user = await userService.authenticateUser(req.body);
-        const accessToken = jwt.sign({ user_id: user._id }, 'my_secret_key', { expiresIn: '24h' });
+        const accessToken = jwt.sign({ user_id: user._id }, 'my_secret_key', { expiresIn: 60 });
         return res.json({
             message: 'Thanh cong',
             accessToken: accessToken,
-            user_name: user.user_name,
-            user_phone: user.user_phone,
-            user_address: user.user_address,
+            // user_name: user.user_name,
         });
     } catch (error) {
         const errorMessage = error.message || "Có lỗi xảy ra";
