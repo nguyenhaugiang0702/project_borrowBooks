@@ -1,17 +1,16 @@
 const jwt = require('jsonwebtoken');
 
-function authenticateToken(req, res, next) {
+// Hàm để xác thực token từ header
+function authenticateTokenFromHeader(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (token == null) return res.sendStatus(401);
+    if (!token) return res.sendStatus(401);
 
     jwt.verify(token, 'my_secret_key', (err, user) => {
         if (err) {
             if (err.name === 'TokenExpiredError') {
-                // Nếu token đã hết hạn, trả về lỗi 401
                 return res.sendStatus(401);
             } else {
-                // Nếu có lỗi khác xảy ra, trả về lỗi 403
                 return res.sendStatus(403);
             }
         }
@@ -20,4 +19,22 @@ function authenticateToken(req, res, next) {
     });
 }
 
-module.exports = authenticateToken;
+// Hàm để xác thực token từ route params
+function authenticateTokenFromParams(req, res, next) {
+    const token = req.params.token;
+    if (!token) return res.sendStatus(401);
+
+    jwt.verify(token, 'my_secret_key', (err, user) => {
+        if (err) {
+            if (err.name === 'TokenExpiredError') {
+                return res.sendStatus(401);
+            } else {
+                return res.sendStatus(403);
+            }
+        }
+        req.user = user;
+        next();
+    });
+}
+
+module.exports = { authenticateTokenFromHeader, authenticateTokenFromParams };

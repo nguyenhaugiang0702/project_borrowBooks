@@ -4,28 +4,26 @@ const authenticateToken = require("../middelware/jwt");
 
 const router = express.Router();
 
-router.use(authenticateToken);
-
+// Thêm vào giỏ
 router
     .route("/")
-    .get(carts.getCart)
-    .post(carts.addtocart)
+    .post(authenticateToken.authenticateTokenFromHeader, carts.addtocart)
 
-// router
-//     .route("/:user_id")
-//     .get(carts.getCart)
-//     .put(carts.update)
+// Lấy giỏ hàng
+router
+    .route("/:token")
+    .get(authenticateToken.authenticateTokenFromParams, carts.getCart)
+    // .put(carts.update)
 
 // Xóa tất cả sách trong giỏ khi tiến hành mượn
 router
     .route("/deleteAll")
-    .delete(carts.deleteAllBook);
+    .delete(authenticateToken.authenticateTokenFromHeader, carts.deleteAllBook);
     
 // Xóa sách trong giỏ
 router
     .route("/:book_id")
-    .delete(carts.deleteBook);
+    .delete(authenticateToken.authenticateTokenFromHeader, carts.deleteBook);
 
-
-
+    
 module.exports = router;

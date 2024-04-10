@@ -4,12 +4,12 @@ const authenticateToken = require("../middelware/jwt");
 
 const router = express.Router();
 router
-    .route("/getOneUser")
-    .get(authenticateToken, users.findOne);
+    .route("/:token")
+    .get(authenticateToken.authenticateTokenFromParams, users.findOne);
     
 router
-    .route("/updateOneUser")
-    .put(authenticateToken, users.update);
+    .route("/:token")
+    .put(authenticateToken.authenticateTokenFromParams, users.update);
     
 router
     .route("/")

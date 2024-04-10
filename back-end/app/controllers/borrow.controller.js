@@ -107,37 +107,6 @@ exports.findALL = async (req, res, next) => {
     return res.send(documentsWithDetails);
 };
 
-exports.getBorrowWithID = async (req, res, next) => {
-    try {
-        const borrowService = new BorrowService(MongoDB.client);
-        const userService = new UserService(MongoDB.client);
-        const bookService = new BookService(MongoDB.client);
-        const document = await borrowService.findById(req.params.id);
-        const userInfo = await userService.findById(document.user_id);
-        const books = await Promise.all(document.books.map(async (book) => {
-            const bookDetail = await bookService.findById(book.book_id);
-            return { ...bookDetail, quantity: book.quantity, return_number: book.return_number }
-        }));
-
-        const docWithDetails = {
-            _id: document._id ? document._id : null,
-            user: userInfo ? userInfo : null,
-            books: books ? books : null,
-            totalQuantity: document.totalQuantity ? document.totalQuantity : null,
-            totalPrice: document.totalPrice ? document.totalPrice : null,
-            status: document.status ? document.status : null,
-            borrow_date: document.borrow_date ? document.borrow_date : null,
-            return_date: document.return_date ? document.return_date : 'Chưa Biết',
-        };
-
-        return res.send(docWithDetails);
-    } catch (error) {
-        return next(
-            new ApiError(500, "An Error Occurred while retrieving borrows")
-        );
-    }
-}
-
 exports.getBorrowWithUserId = async (req, res, next) => {
     try {
         const borrowService = new BorrowService(MongoDB.client);
@@ -225,7 +194,7 @@ exports.updateStatus = async (req, res, next) => {
         const borrowService = new BorrowService(MongoDB.client);
         const bookService = new BookService(MongoDB.client);
         if (req.body.status == 'Đang mượn') {
-            const doc = await borrowService.updateStatus(req.params.id, req.body.status);
+            const doc = await borrowService.updateStatus(req.params.borrowId, req.body.status);
 
             // Cập nhật số lượng mượn vào cơ sở dữ liệu
             await Promise.all(doc.books.map(async (book) => {
@@ -234,7 +203,7 @@ exports.updateStatus = async (req, res, next) => {
             return res.send(doc);
 
         } else if (req.body.status == 'Yêu cầu hủy' || req.body.status == 'Đã hủy') {
-            const doc = await borrowService.updateStatus(req.params.id, req.body.status);
+            const doc = await borrowService.updateStatus(req.params.borrowId, req.body.status);
             return res.send(doc);
         }
 
@@ -248,7 +217,7 @@ exports.updateStatus = async (req, res, next) => {
 exports.deleteBorrowWithId = async (req, res, next) => {
     try {
         const borrowService = new BorrowService(MongoDB.client);
-        const borrowId = req.params.id;
+        const borrowId = req.params.borrowId;
         const borrow = await borrowService.findById(borrowId);
         if (borrow.status !== 'Đang chờ xác nhận' && borrow.status !== 'Đã trả' && borrow.status !== 'Đã hủy') {
             return res.status(400).json({ message: "Không thể xóa mượn với trạng thái hiện tại" });

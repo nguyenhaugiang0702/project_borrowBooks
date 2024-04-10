@@ -7,31 +7,22 @@ const router = express.Router();
 router
     .route("/")
     .get(borrow.findALL)
-    .post(authenticateToken, borrow.addtoTrackBookBorrowing)
+    .post(authenticateToken.authenticateTokenFromHeader, borrow.addtoTrackBookBorrowing)
 
 // Lấy tất cả các đơn mượn từ user_id
 router
-    .route("/user")
-    .get(authenticateToken, borrow.getBorrowWithUserId)
+    .route("/:token")
+    .get(authenticateToken.authenticateTokenFromParams, borrow.getBorrowWithUserId)
 
-// Cập nhật số lượng sách trả
+// Cập nhật số lượng sách trả (Admin)
 router
     .route("/updateReturnNumber/:id")
     .put(borrow.updateReturnBookNumber)
 
-// Lấy thông tin đơn mượn với id đơn mượn
+// Cập nhật trạng thái đơn mượn và số lượng sách mượn trong collection 'books' (admin)
 router
-    .route("/:id")
-    .get(borrow.getBorrowWithID)
-
-// Xóa đơn mượn với id đơn mượn
-router
-    .route("/borrowWithId/:id")
+    .route("/:borrowId")
+    .put(authenticateToken.authenticateTokenFromHeader, borrow.updateStatus)
     .delete(borrow.deleteBorrowWithId)
-
-// Cập nhật trạng thái đơn mượn và số lượng sách mượn trong collection 'books'
-router
-    .route("/:id")
-    .put(borrow.updateStatus)
 
 module.exports = router;

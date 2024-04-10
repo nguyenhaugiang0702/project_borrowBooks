@@ -4,17 +4,14 @@ const authenticateToken = require("../middelware/jwt");
 
 const router = express.Router();
 
-router.use(authenticateToken);
-
+// Tạo 1 checkout
 router
     .route("/")
-    .get(checkout.findOne)
-    .post(checkout.create)
-    .delete(checkout.deleteALL);
+    .post(authenticateToken.authenticateTokenFromHeader, checkout.create)
 
+// Lấy checkout
 router
-    .route("/:id")
-    .put(checkout.update)
-    .delete(checkout.delete);
+    .route("/:token")
+    .get(authenticateToken.authenticateTokenFromParams, checkout.findOne)
 
 module.exports = router;
