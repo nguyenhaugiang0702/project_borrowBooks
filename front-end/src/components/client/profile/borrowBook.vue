@@ -285,13 +285,8 @@ export default {
         const getBorrowWithId = async () => {
             const token = Cookies.get('accessToken');
             if (token) {
-                const response = await axios.get('http://127.0.0.1:3000/api/borrows/user', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                })
+                const response = await axios.get(`http://127.0.0.1:3000/api/borrows/${token}`)
                 if (response.status == 200) {
-                    console.log(response.data);
                     userWithBorrows.value = response.data;
                     countBorrows();
                 }
@@ -310,7 +305,12 @@ export default {
         const cancelBorrow = async (borrowId, e) => {
             try {
                 e.preventDefault();
-                const response = await axios.put(`http://localhost:3000/api/borrows/${borrowId}`, { status: 'Yêu cầu hủy' })
+                const token = Cookies.get('accessToken');
+                const response = await axios.put(`http://localhost:3000/api/borrows/${borrowId}`, { status: 'Yêu cầu hủy' }, {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
                 if (response.status == 200) {
                     await Swal.fire({
                         title: 'Yêu cầu hủy đã được gửi đi',

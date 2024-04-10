@@ -86,14 +86,9 @@ export default {
 
         const getCheckOut = async () => {
             const token = Cookies.get('accessToken');
-            await axios.get('http://127.0.0.1:3000/api/checkout', {
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            })
+            await axios.get(`http://127.0.0.1:3000/api/checkout/${token}`)
                 .then((response) => {
                     if (response.status == 200) {
-                        console.log(response.data);
                         checkout.value = response.data;
                     }
                 })
@@ -116,11 +111,7 @@ export default {
         const getUser = async () => {
             const token = Cookies.get('accessToken');
             if (token) {
-                await axios.get('http://127.0.0.1:3000/api/users/getOneUser', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                })
+                await axios.get(`http://localhost:3000/api/users/${token}`)
                     .then((response) => {
                         if (response.status == 200) {
                             userInfo.value = response.data;

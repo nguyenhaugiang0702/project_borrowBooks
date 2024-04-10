@@ -85,11 +85,7 @@ export default {
         const getCarts = async () => {
             const token = Cookies.get('accessToken');
             if (token) {
-                await axios.get('http://127.0.0.1:3000/api/cart/', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                })
+                await axios.get(`http://127.0.0.1:3000/api/cart/${token}`)
                     .then((response) => {
                         if (response.status == 200) {
                             booksInCart.value = response.data;

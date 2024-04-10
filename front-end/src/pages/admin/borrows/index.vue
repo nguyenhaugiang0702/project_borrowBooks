@@ -181,7 +181,7 @@ export default {
         };
 
         const deleteborrow = async (borrowId) => {
-            await axios.delete(`http://127.0.0.1:3000/api/borrows/borrowWithId/${borrowId}`)
+            await axios.delete(`http://127.0.0.1:3000/api/borrows/${borrowId}`)
                 .then((response) => {
                     if (response.status === 200) {
                         Swal.fire({

@@ -54,11 +54,7 @@ export default {
         const userInfo_address = ref({});
         const getOneAddress = async () => {
             const token = Cookies.get('accessToken');
-            await axios.get('http://localhost:3000/api/users/getOneUser', {
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            })
+            await axios.get(`http://localhost:3000/api/users/${token}`)
                 .then((response) => {
                     if (response.status == 200) {
                         userInfo_address.value = response.data
@@ -72,11 +68,7 @@ export default {
             try {
                 const token = Cookies.get('accessToken');
                 const textareaValue = document.getElementById('user_address').value;
-                const response = await axios.put('http://localhost:3000/api/users/updateOneUser', { user_address: textareaValue }, {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                })
+                const response = await axios.put(`http://localhost:3000/api/users/${token}`, { user_address: textareaValue })
                 if (response.status == 200) {
                     await Swal.fire({
                         title: 'Cập nhật địa chỉ thành công',
