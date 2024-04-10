@@ -12,7 +12,7 @@ exports.addtoTrackBookBorrowing = async (req, res, next) => {
         const user_id = req.user.user_id;
         const { checkoutInfoOfUser } = req.body;
         if (!req.body?.checkoutInfoOfUser) {
-            return res.status(400).json({ message: "Vui lòng cung cấp checkoutInfoOfUser" });
+            return res.status(404).json({ message: "Vui lòng cung cấp checkoutInfoOfUser" });
         }
         const borrowService = new BorrowService(MongoDB.client);
         const cartService = new CartService(MongoDB.client);
@@ -127,6 +127,37 @@ exports.getBorrowWithUserId = async (req, res, next) => {
     }
 }
 
+exports.getBorrowWithID = async (req, res, next) => {
+    try {
+        const borrowService = new BorrowService(MongoDB.client);
+        const userService = new UserService(MongoDB.client);
+        const bookService = new BookService(MongoDB.client);
+        const document = await borrowService.findById(req.params.borrowId);
+        const userInfo = await userService.findById(document.user_id);
+        const books = await Promise.all(document.books.map(async (book) => {
+            const bookDetail = await bookService.findById(book.book_id);
+            return { ...bookDetail, quantity: book.quantity, return_number: book.return_number }
+        }));
+
+        const docWithDetails = {
+            _id: document._id ? document._id : null,
+            user: userInfo ? userInfo : null,
+            books: books ? books : null,
+            totalQuantity: document.totalQuantity ? document.totalQuantity : null,
+            totalPrice: document.totalPrice ? document.totalPrice : null,
+            status: document.status ? document.status : null,
+            borrow_date: document.borrow_date ? document.borrow_date : null,
+            return_date: document.return_date ? document.return_date : 'Chưa Biết',
+        };
+
+        return res.send(docWithDetails);
+    } catch (error) {
+        return next(
+            new ApiError(500, "An Error Occurred while retrieving borrows")
+        );
+    }
+}
+
 exports.getCart = async (req, res, next) => {
     try {
         const cartService = new CartService(MongoDB.client);
@@ -192,6 +223,21 @@ exports.update = async (req, res, next) => {
 exports.updateStatus = async (req, res, next) => {
     try {
         const borrowService = new BorrowService(MongoDB.client);
+        if (req.body.status == 'Yêu cầu hủy') {
+            const doc = await borrowService.updateStatus(req.params.borrowId, req.body.status);
+            return res.send(doc);
+        }
+
+    } catch (error) {
+        return next(
+            new ApiError(500, `Error updating nxb with id=${req.params.id}`)
+        );
+    }
+};
+
+exports.updateStatusOfAdmin = async (req, res, next) => {
+    try {
+        const borrowService = new BorrowService(MongoDB.client);
         const bookService = new BookService(MongoDB.client);
         if (req.body.status == 'Đang mượn') {
             const doc = await borrowService.updateStatus(req.params.borrowId, req.body.status);
@@ -202,7 +248,7 @@ exports.updateStatus = async (req, res, next) => {
             }));
             return res.send(doc);
 
-        } else if (req.body.status == 'Yêu cầu hủy' || req.body.status == 'Đã hủy') {
+        } else if (req.body.status == 'Đã hủy') {
             const doc = await borrowService.updateStatus(req.params.borrowId, req.body.status);
             return res.send(doc);
         }

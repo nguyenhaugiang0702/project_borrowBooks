@@ -11,6 +11,11 @@ router
 
 // Lấy tất cả các đơn mượn từ user_id
 router
+    .route("/borrow/:borrowId")
+    .get(borrow.getBorrowWithID)
+
+// Lấy tất cả các đơn mượn từ user_id
+router
     .route("/:token")
     .get(authenticateToken.authenticateTokenFromParams, borrow.getBorrowWithUserId)
 
@@ -19,10 +24,14 @@ router
     .route("/updateReturnNumber/:id")
     .put(borrow.updateReturnBookNumber)
 
-// Cập nhật trạng thái đơn mượn và số lượng sách mượn trong collection 'books' (admin)
+router 
+    .route("/update/:borrowId")
+    .put(borrow.updateStatusOfAdmin) // Bên admin
+    
+// Cập nhật trạng thái đơn mượn và số lượng sách mượn trong collection 'books' 
 router
     .route("/:borrowId")
-    .put(authenticateToken.authenticateTokenFromHeader, borrow.updateStatus)
+    .put(authenticateToken.authenticateTokenFromHeader, borrow.updateStatus) // bên user
     .delete(borrow.deleteBorrowWithId)
 
 module.exports = router;

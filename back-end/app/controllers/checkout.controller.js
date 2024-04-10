@@ -53,7 +53,7 @@ exports.findOne = async (req, res, next) => {
         const user_id = new ObjectId(req.user.user_id);
         const document = await checkoutService.find({ user_id });
         if (!document) {
-            return next(new ApiError(404, "Checkout not found"));
+            return next(new ApiError(404, "Không tìm thấy checkout"));
         }
         return res.send(document[0]);
     } catch (error) {

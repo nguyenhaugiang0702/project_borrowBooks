@@ -19,7 +19,7 @@ exports.addtocart = async (req, res, next) => {
 
         const userInfo = await userService.findById(user_id);
         if (!userInfo) {
-            return next(new ApiError(400, "user_id không hợp lệ"));
+            return next(new ApiError(404, "Không tìm thấy người dùng"));
         }
         let cart = await cartService.find({ user_id });
         if (!cart || cart.length == 0) {
@@ -139,7 +139,7 @@ exports.deleteBook = async (req, res, next) => {
         const book_id = req.params.book_id;
         const deletedProduct = await cartService.deleteProductFromCart(user_id, book_id);
         if (!deletedProduct) {
-            return next(new ApiError(404, "book with user_id in cart not found"));
+            return next(new ApiError(404, "Không tìm thấy Id sách"));
         }
         return res.send({ messgae: "book was deleted successfully" });
     } catch (error) {

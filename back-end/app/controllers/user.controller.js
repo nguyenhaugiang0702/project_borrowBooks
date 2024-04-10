@@ -44,7 +44,7 @@ exports.loginUser = async (req, res, next) => {
     try {
         const userService = new UserService(MongoDB.client);
         const user = await userService.authenticateUser(req.body);
-        const accessToken = jwt.sign({ user_id: user._id }, 'my_secret_key', { expiresIn: 60 });
+        const accessToken = jwt.sign({ user_id: user._id }, 'my_secret_key', { expiresIn: 24 * 60 * 60 });
         return res.json({
             message: 'Thanh cong',
             accessToken: accessToken,
@@ -82,7 +82,7 @@ exports.findOne = async (req, res, next) => {
         const userService = new UserService(MongoDB.client);
         const document = await userService.findById(req.user.user_id);
         if (!document) {
-            return next(new ApiError(404, "user not found"));
+            return next(new ApiError(404, "Không tìm thấy người dùng"));
         }
         return res.send(document);
     } catch (error) {

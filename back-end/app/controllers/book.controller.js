@@ -102,7 +102,7 @@ exports.checkNumberBook = async (req, res, next) => {
         const bookInfo = await bookService.findById(book.book_id);
         const availableBooks = bookInfo.book_number - bookInfo.book_borrowedNumber;
         if (book.quantity > availableBooks) {
-          res.status(403).send({ message: "Số lượng sách không hợp lệ" });
+          res.status(402).send({ message: "Số lượng sách không hợp lệ" });
           errorOccurred = true;
           break;
         }
@@ -110,7 +110,7 @@ exports.checkNumberBook = async (req, res, next) => {
       else { // bên admin kiểm tra gửi qua
         const availableBooks = book.book_number - book.book_borrowedNumber;
         if (book.quantity > availableBooks) {
-          res.status(403).send({ message: "Số lượng sách không hợp lệ" });
+          res.status(402).send({ message: "Số lượng sách không hợp lệ" });
           errorOccurred = true;
           break;
         }
