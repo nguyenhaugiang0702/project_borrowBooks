@@ -54,6 +54,7 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import Swal from 'sweetalert2';
 import { useStore } from 'vuex';
 import Cookies from 'js-cookie';
+import ApiService from '@/service/ApiService';
 
 export default {
     components: {
@@ -72,7 +73,6 @@ export default {
         const togglePasswordVisibility = () => {
             showPassword.value = !showPassword.value;
         }
-
         const SignInUser = async () => {
             await axios.post('http://127.0.0.1:3000/api/users/login', getUserToSignIn.value)
                 .then(async (response) => {
@@ -82,9 +82,9 @@ export default {
                             user_password: '',
                         }
                         const token = response.data.accessToken;
-                        Cookies.set('accessToken', token, { expires: 60 });
+                        Cookies.set('accessToken', token, { expires: 24 });
                         const user_name = response.data.user_name;
-                        Cookies.set('user_name', user_name, { expires: 60 });
+                        Cookies.set('user_name', user_name, { expires: 24 });
                         await Swal.fire({
                             title: 'Thành công!',
                             text: 'Bạn đã đăng nhập thành công.',

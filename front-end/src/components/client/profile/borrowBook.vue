@@ -63,13 +63,13 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price)
+                                            <span class="price text-danger"> {{ formattedPrice(book.book_info.book_price)
                                                 }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12"> TỔNG GIÁ:
-                                            <span class="price text-danger">{{ formatPrice(book.total_price) }}</span>
+                                            <span class="price text-danger">{{ formattedPrice(book.total_price) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -107,13 +107,13 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price)
+                                            <span class="price text-danger"> {{ formattedPrice(book.book_info.book_price)
                                                 }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12"> TỔNG GIÁ:
-                                            <span class="price text-danger">{{ formatPrice(book.total_price) }}</span>
+                                            <span class="price text-danger">{{ formattedPrice(book.total_price) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -161,13 +161,13 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price)
+                                            <span class="price text-danger"> {{ formattedPrice(book.book_info.book_price)
                                                 }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12"> TỔNG GIÁ:
-                                            <span class="price text-danger">{{ formatPrice(book.total_price) }}</span>
+                                            <span class="price text-danger">{{ formattedPrice(book.total_price) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -205,13 +205,13 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price)
+                                            <span class="price text-danger"> {{ formattedPrice(book.book_info.book_price)
                                                 }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12"> TỔNG GIÁ:
-                                            <span class="price text-danger">{{ formatPrice(book.total_price) }}</span>
+                                            <span class="price text-danger">{{ formattedPrice(book.total_price) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -249,13 +249,13 @@
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12">ĐƠN GIÁ:
-                                            <span class="price text-danger"> {{ formatPrice(book.book_info.book_price)
+                                            <span class="price text-danger"> {{ formattedPrice(book.book_info.book_price)
                                                 }}</span>
                                         </div>
                                     </div>
                                     <div class="row fw-bold mb-2">
                                         <div class="col-12"> TỔNG GIÁ:
-                                            <span class="price text-danger">{{ formatPrice(book.total_price) }}</span>
+                                            <span class="price text-danger">{{ formattedPrice(book.total_price) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -273,7 +273,8 @@
 import { ref, onMounted } from 'vue';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
-
+import { formatPrice } from '@/utils/utils';
+import ApiService from '@/service/ApiService';
 export default {
     setup() {
         const userWithBorrows = ref([]);
@@ -282,16 +283,16 @@ export default {
         const ychCount = ref(0);
         const dtCount = ref(0);
         const dhCount = ref(0);
+        const apiService = new ApiService();
         const getBorrowWithId = async () => {
             const token = Cookies.get('accessToken');
             if (token) {
-                const response = await axios.get(`http://127.0.0.1:3000/api/borrows/${token}`)
+                const response = await apiService.get(`borrows/${token}`)
                 if (response.status == 200) {
                     userWithBorrows.value = response.data;
                     countBorrows();
                 }
             }
-
         }
 
         const countBorrows = () => {
@@ -303,48 +304,29 @@ export default {
         }
 
         const cancelBorrow = async (borrowId, e) => {
-            try {
-                e.preventDefault();
-                const token = Cookies.get('accessToken');
-                const response = await axios.put(`http://localhost:3000/api/borrows/${borrowId}`, { status: 'Yêu cầu hủy' }, {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
+            e.preventDefault();
+            const token = Cookies.get('accessToken');
+            if (token) {
+                try {
+                    const response = await apiService.put(`borrows/${borrowId}`, { status: 'Yêu cầu hủy' }, token)
+                    if (response.status == 200) {
+                        await Swal.fire({
+                            title: 'Yêu cầu hủy đã được gửi đi',
+                            text: 'Vui lòng chờ phản hồi',
+                            icon: 'success',
+                            confirmButtonText: 'Đồng ý',
+                            timer: 1500,
+                        });
+                        getBorrowWithId();
                     }
-                })
-                if (response.status == 200) {
-                    await Swal.fire({
-                        title: 'Yêu cầu hủy đã được gửi đi',
-                        text: 'Vui lòng chờ phản hồi',
-                        icon: 'success',
-                        confirmButtonText: 'Đồng ý',
-                        timer: 1500,
-                    });
-                    window.location.reload();
-                }
-            } catch (error) {
-                if (error.response && error.response.status === 401) {
-                    Swal.fire({
-                        title: 'Phiên xử lý hết hạn',
-                        text: 'Vui lòng đăng nhập để tiếp tục',
-                        icon: 'warning',
-                        timer: 1500,
-                        showConfirmButton: true,
-                    });
-                } else if (error.response && error.response.status === 403) {
-                    Swal.fire({
-                        title: 'Bạn chưa đăng nhập',
-                        text: 'Vui lòng đăng nhập để tiếp tục',
-                        icon: 'warning',
-                        timer: 1500,
-                        showConfirmButton: true,
-                    });
+                } catch (error) {
+                    console.log(error);
                 }
             }
-
         }
 
-        const formatPrice = (price) => {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        const formattedPrice = (price) => {
+            return formatPrice(price);
         }
 
         onMounted(() => {
@@ -360,7 +342,7 @@ export default {
             dhCount,
             getBorrowWithId,
             cancelBorrow,
-            formatPrice
+            formattedPrice
         }
     }
 }

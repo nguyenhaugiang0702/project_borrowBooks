@@ -27,26 +27,31 @@
 <script>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import ApiService from '@/service/ApiService';
 export default {
     setup() {
         const search_key = ref('');
         const books = ref([]);
         const router = useRouter();
         const isListVisible = ref(true);
+        const apiService = new ApiService();
+
         const searchBook = async () => {
             try {
-                const res = await axios.get(`http://127.0.0.1:3000/api/books/search?book_name=${search_key.value}`);
-                if (res.status === 200) {
-                    books.value = res.data;
+                const response = await apiService.get(`books/search?book_name=${search_key.value}`);
+                if (response.status === 200) {
+                    books.value = response.data;
                 }
             } catch (error) {
                 console.error('Error fetching books:', error);
             }
         };
+
         const clickResetSearch = () => {
             search_key.value = '';
             isListVisible.value = false;
         }
+
         return {
             search_key,
             books,

@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import ListBook from '../../components/client/books/ListBook.vue';
 
 export default {

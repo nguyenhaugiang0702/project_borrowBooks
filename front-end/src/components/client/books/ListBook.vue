@@ -7,7 +7,7 @@
             <div class="card-body">
                 <h5 class="card-title text-center">{{ book.book_name }}</h5>
                 <p class="card-text text-center">
-                    <span class="text-danger">{{ formatPrice(book.book_price) }}</span>
+                    <span class="text-danger">{{ formattedPrice(book.book_price) }}</span>
                 <p class="text-center">Nhà Xuất Bản: {{ book.publisherInfo.publisher_name }}</p>
                 </p>
             </div>
@@ -39,7 +39,7 @@
                     <div class="card-body">
                         <h5 class="card-title text-center">{{ book.book_name }}</h5>
                         <p class="card-text text-center">
-                            <span class="text-danger">{{ formatPrice(book.book_price) }}</span>
+                            <span class="text-danger">{{ formattedPrice(book.book_price) }}</span>
                         <p class="text-center">Nhà Xuất Bản: {{ book.publisherInfo.publisher_name }}</p>
                         </p>
                     </div>
@@ -73,7 +73,7 @@
                     <div class="card-body">
                         <h5 class="card-title text-center">{{ book.book_name }}</h5>
                         <p class="card-text text-center">
-                            <span class="text-danger">{{ formatPrice(book.book_price) }}</span>
+                            <span class="text-danger">{{ formattedPrice(book.book_price) }}</span>
                         <p class="text-center">Nhà Xuất Bản: {{ book.publisherInfo.publisher_name }}</p>
                         </p>
                     </div>
@@ -95,6 +95,8 @@ import { ref, onMounted, watchEffect } from 'vue';
 import { useStore } from 'vuex';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import { formatPrice } from '../../../utils/utils';
+import ApiService from '../../../service/ApiService';
 
 export default {
     props: {
@@ -115,18 +117,14 @@ export default {
         const books = ref([]);
         const publisherName = ref('');
         const store = useStore();
-        const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+        const apiService = new ApiService();
 
         // Get books
         const getBooks = async () => {
-            await axios
-                .get('http://127.0.0.1:3000/api/books/')
-                .then((response) => {
-                    books.value = response.data;
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
+            const response = await apiService.get('books');
+            if (response.status === 200) {
+                books.value = response.data;
+            }
         }
 
         // Add to cart
@@ -142,62 +140,32 @@ export default {
                 });
                 return;
             }
-            await axios.post('http://127.0.0.1:3000/api/cart', { book_id: bookId, quantity: 1 }, {
-                headers: {
-                    'Authorization': 'Bearer ' + token
+            try {
+                const data = { book_id: bookId, quantity: 1 };
+                const response = await apiService.post('cart', data, token);
+                if (response.status === 200) {
+                    alert('Đã thêm vào giỏ hàng');
+                    window.location.reload();
                 }
-            })
-                .then((response) => {
-                    if (response.status == 200) {
-                        alert('da them vao gio hang');
-                        window.location.reload();
-                    }
-                })
-                .catch((error) => {
-                    if (error.response && error.response.status === 403) {
-                        Swal.fire({
-                            title: 'Bạn chưa đăng nhập',
-                            text: 'Vui lòng đăng nhập để tiếp tục',
-                            icon: 'warning',
-                            timer: 1500,
-                            showConfirmButton: true,
-                        });
-                    } else if(error.response && error.response.status === 401) {
-                        Swal.fire({
-                            title: 'Phiên xử lý hết hạn',
-                            text: 'Vui lòng đăng nhập để tiếp tục',
-                            icon: 'warning',
-                            timer: 1500,
-                            showConfirmButton: true,
-                        });
-                    }
-                })
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+            }
         }
 
         // Get books with publisher
         const getBooksFilterNxb = async (publisher_Id) => {
-            await axios
-                .get(`http://127.0.0.1:3000/api/books/publisher/${publisher_Id}`)
-                .then((response) => {
-                    if (response.status == 200) {
-                        books.value = response.data;
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
+            const response = await apiService.get(`books/publisher/${publisher_Id}`);
+            if (response.status === 200) {
+                books.value = response.data;
+            }
         }
 
         // Proudct At Home
         const getBooksAtHomePage = async () => {
-            await axios
-                .get('http://127.0.0.1:3000/api/books/productsHome')
-                .then((respones) => {
-                    books.value = respones.data;
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
+            const response = await apiService.get('books/productsHome');
+            if (response.status === 200) {
+                books.value = response.data;
+            }
         }
 
         if (publisher_Id && namePage == 'filterBooksPage') {
@@ -214,24 +182,22 @@ export default {
             onMounted(() => {
                 getBooksAtHomePage();
             });
-
         }
 
         //Format Money
-        const formatPrice = (price) => {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        const formattedPrice = (price) => {
+            return formatPrice(price);
         }
 
         return {
             getBooks,
             addToCart,
             books,
-            isLoggedIn,
             publisherName,
             getBooksFilterNxb,
             publisher_Id,
             getBooksAtHomePage,
-            formatPrice
+            formattedPrice,
         }
     }
 }

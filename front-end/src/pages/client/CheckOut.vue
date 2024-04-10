@@ -54,9 +54,8 @@
                         <div class="col-5">Tổng giá:</div>
                         <div class="col-7">
                             <span class="price text-danger fw-bold">
-                                {{ formatPrice(totalPrice) }}
+                                {{ formattedPrice(totalPrice) }}
                             </span>
-                            <span class="text-danger fw-bold"> VNĐ</span>
                         </div>
                     </div>
                     <hr>
@@ -64,9 +63,8 @@
                         <div class="col-5">Tổng cộng:</div>
                         <div class="col-7">
                             <span class="price text-danger fw-bold">
-                                {{ formatPrice(totalPrice) }}
+                                {{ formattedPrice(totalPrice) }}
                             </span>
-                            <span class="text-danger fw-bold"> VNĐ</span>
                         </div>
                     </div>
                 </div>
@@ -78,23 +76,26 @@
 import { ref, onMounted, computed } from 'vue';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import ApiService from '@/service/ApiService';
+import { formatPrice } from '@/utils/utils';
 export default {
     setup() {
         const checkout = ref([]);
         const userInfo = ref({})
         const checkoutInfo = ref([]);
-
+        const apiService = new ApiService();
         const getCheckOut = async () => {
-            const token = Cookies.get('accessToken');
-            await axios.get(`http://127.0.0.1:3000/api/checkout/${token}`)
-                .then((response) => {
-                    if (response.status == 200) {
+            try {
+                const token = Cookies.get('accessToken');
+                if (token) {
+                    const response = await apiService.get(`checkout/${token}`);
+                    if (response.status === 200) {
                         checkout.value = response.data;
                     }
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
+                }
+            } catch (error) {
+                console.log(error);
+            }
         }
 
         const totalPrice = computed(() => {
@@ -109,17 +110,16 @@ export default {
         });
 
         const getUser = async () => {
-            const token = Cookies.get('accessToken');
-            if (token) {
-                await axios.get(`http://localhost:3000/api/users/${token}`)
-                    .then((response) => {
-                        if (response.status == 200) {
-                            userInfo.value = response.data;
-                        }
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    })
+            try {
+                const token = Cookies.get('accessToken');
+                if (token) {
+                    const response = await apiService.get(`users/${token}`);
+                    if (response.status === 200) {
+                        userInfo.value = response.data;
+                    }
+                }
+            } catch (error) {
+                console.log(error);
             }
         }
 
@@ -133,36 +133,32 @@ export default {
                     total_price: book.total_price
                 }));
                 const checkoutInfoOfUser = checkoutInfo.value;
-                await axios.post('http://127.0.0.1:3000/api/borrows', { checkoutInfoOfUser }, {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                })
-                    .then(async (response) => {
-                        if (response.status == 200) {
+                try {
+                    const response = await apiService.post('borrows', { checkoutInfoOfUser }, token);
+                    if (response.status === 200) {
                             await Swal.fire({
                                 title: 'Thành Công',
                                 text: 'Bạn đã mượn sách thành công',
                                 icon: 'success',
-                                timer: 1000,
+                                timer: 1500,
                             });
                             window.location.reload();
                         }
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    })
+                } catch (error) { 
+                    console.log(error);
+                }
             } else {
                 await Swal.fire({
                     title: 'Lỗi',
                     text: 'Vui lòng kiểm tra địa chỉ và giỏ sách',
                     icon: 'error',
+                    timer: 1500,
                 });
             }
         };
 
-        const formatPrice = (price) => {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        const formattedPrice = (price) => {
+            return formatPrice(price);
         }
 
         onMounted(() => {
@@ -178,7 +174,7 @@ export default {
             checkout,
             userInfo,
             checkoutInfo,
-            formatPrice,
+            formattedPrice,
         }
     }
 }

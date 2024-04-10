@@ -97,6 +97,7 @@ import { useStore } from 'vuex';
 import { computed, onMounted, ref } from 'vue';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import ApiService from '../../service/ApiService';
 
 export default {
     components: {
@@ -106,36 +107,19 @@ export default {
     },
     setup() {
         const userInfo = ref({});
+        const apiService = new ApiService();
         const getUser = async () => {
-            const token = Cookies.get('accessToken');
-            await axios.get(`http://localhost:3000/api/users/${token}`)
-                .then((response) => {
-                    if (response.status == 200) {
+            try {
+                const token = Cookies.get('accessToken');
+                if (token) {
+                    const response = await apiService.get(`users/${token}`);
+                    if (response.status === 200) {
                         userInfo.value = response.data;
                     }
-                })
-                .catch((error) => {
-                    if (error.response && error.response.status === 403) {
-                        Swal.fire({
-                            title: 'Bạn chưa đăng nhập',
-                            text: 'Vui lòng đăng nhập để tiếp tục',
-                            icon: 'warning',
-                            timer: 1500,
-                            showConfirmButton: true,
-                        });
-                        window.location.reload();
-                    } else if (error.response && error.response.status === 401) {
-                        Swal.fire({
-                            title: 'Phiên xử lý hết hạn',
-                            text: 'Vui lòng đăng nhập để tiếp tục',
-                            icon: 'warning',
-                            timer: 1500,
-                            showConfirmButton: true,
-                        });
-                    } else {
-                        console.error('Lỗi khi lấy cart:', error);
-                    }
-                })
+                }
+            } catch (error) {
+                console.log(error);
+            }
         }
 
         const logOut = () => {
@@ -159,97 +143,18 @@ export default {
 
         const booksInCart = ref([]);
         const getCarts = async () => {
-            const token = Cookies.get('accessToken');
-            if (token) {
-                await axios.get(`http://localhost:3000/api/cart/${token}`)
-                    .then((response) => {
-                        if (response.status == 200) {
-                            booksInCart.value = response.data;
-                        }
-                    })
-                    .catch((error) => {
-                        if (error.response && error.response.status === 403) {
-                            Swal.fire({
-                                title: 'Bạn chưa đăng nhập',
-                                text: 'Vui lòng đăng nhập để tiếp tục',
-                                icon: 'warning',
-                                timer: 1500,
-                                showConfirmButton: true,
-                            });
-                            window.location.reload();
-                        } else if (error.response && error.response.status === 401) {
-                            Swal.fire({
-                                title: 'Phiên xử lý hết hạn',
-                                text: 'Vui lòng đăng nhập để tiếp tục',
-                                icon: 'warning',
-                                timer: 1500,
-                                showConfirmButton: true,
-                            });
-                        } else {
-                            console.error('Lỗi khi lấy cart:', error);
-                        }
-
-                    })
+            try {
+                const token = Cookies.get('accessToken');
+                if (token) {
+                    const response = await apiService.get(`cart/${token}`);
+                    if (response.status === 200) {
+                        booksInCart.value = response.data;
+                    }
+                }
+            } catch (error) {
+                console.log(error);
             }
         }
-
-        // function checkCookieExpiration(cookieName) {
-        //     const cookieValue = Cookies.get(cookieName, { raw: true });
-        //     if (!cookieValue) {
-        //         console.log(111);
-        //         return false;
-        //     }
-        //     const cookieParts = cookieValue.split(';');
-        //     for (const part of cookieParts) {
-        //         const [key, value] = part.trim().split('=');
-        //         if (key === 'expires') {
-        //             // Lấy thời gian hết hạn của cookie
-        //             const expirationTime = new Date(value);
-        //             const currentTime = new Date();
-        //             // So sánh thời gian hết hạn với thời gian hiện tại
-        //             if (expirationTime <= currentTime) {
-        //                 // Cookie đã hết hạn
-        //                 return false;
-        //             } else {
-        //                 // Cookie còn hiệu lực
-        //                 return true;
-        //             }
-        //         }
-        //     }
-        //     // Không tìm thấy thông tin về thời hạn trong cookie
-        //     return false;
-        // }
-
-        // function startContinuousChecking(cookieName, interval) {
-        //     setInterval(() => {
-        //         const isUserCookieValid = checkCookieExpiration(cookieName);
-        //         console.log('Is user cookie valid?', isUserCookieValid);
-        //     }, interval);
-        // }
-
-        // // Bắt đầu kiểm tra liên tục với khoảng thời gian là 1 phút (60000 milliseconds)
-        // startContinuousChecking('user_name', 60000);
-
-        // const checkTokenExpiration = () => {
-        //     const tokenExpiration = Cookies.get('user_name');
-        //     if (tokenExpiration) {
-        //         const currentTime = Math.floor(Date.now() / 1000); // Thời gian hiện tại tính bằng giây
-        //         if (currentTime > parseInt(tokenExpiration)) {
-        //             // Token đã hết hạn
-        //             // Thực hiện các xử lý khi token hết hạn, ví dụ: hiển thị thông báo yêu cầu người dùng đăng nhập lại
-        //             Swal.fire({
-        //                 title: 'Phiên xử lý hết hạn',
-        //                 text: 'Vui lòng đăng nhập để tiếp tục',
-        //                 icon: 'warning',
-        //                 timer: 1500,
-        //                 showConfirmButton: true,
-        //             }).then(() => {
-        //                 // Chuyển hướng người dùng đến trang đăng nhập
-        //                 // window.location.href = '/login'; // Hoặc sử dụng router.push để chuyển hướng trong Vue Router
-        //             });
-        //         }
-        //     }
-        // };
 
         onMounted(() => {
             getCarts();
@@ -275,9 +180,6 @@ export default {
             totalQuantityInCart,
             getUser,
             userInfo
-            // checkTokenExpiration,
-            // checkCookieExpiration,
-            // isUserCookieValid
         };
     }
 

@@ -24,8 +24,7 @@
                         </div>
                         <div class="row">
                             <div class="text-danger">
-                                <span class="card-text price fw-bold fs-3 ">{{ book.book_price }}</span>
-                                <span class=" fw-bold fs-3">VNĐ</span>
+                                <span class="card-text price fw-bold fs-3 ">{{ formattedPrice(book.book_price) }}</span>
                             </div>
                         </div>
 
@@ -141,12 +140,15 @@ import { useRoute } from 'vue-router';
 import { onMounted, ref, watchEffect } from 'vue';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import { formatPrice } from '../../utils/utils';
+import ApiService from '@/service/ApiService';
 
 export default {
     setup() {
         const route = useRoute();
         const book = ref();
         const quantity = ref(1);
+        const apiService = new ApiService();
 
         const updateQuantity = (event) => {
             quantity.value = parseInt(event.target.value);
@@ -154,15 +156,14 @@ export default {
         };
 
         const getBookWithId = async (bookId) => {
-            await axios.get(`http://127.0.0.1:3000/api/books/${bookId}`)
-                .then((response) => {
-                    if (response.status == 200) {
-                        book.value = response.data;
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
+            try {
+                const response = await apiService.get(`books/${bookId}`);
+                if (response.status === 200) {
+                    book.value = response.data;
+                }
+            } catch (error) {
+                console.log(error);
+            }
         }
 
         watchEffect(() => {
@@ -182,36 +183,20 @@ export default {
                 });
                 return;
             }
-            await axios.post('http://127.0.0.1:3000/api/cart', { book_id: bookId, quantity: quantity }, {
-                headers: {
-                    'Authorization': 'Bearer ' + token
+            try {
+                const response = await apiService.post('cart', { book_id: bookId, quantity: quantity }, token);
+                if (response.status === 200) {
+                    alert('Đã thêm vào giỏ hàng');
+                    window.location.reload();
                 }
-            })
-                .then((response) => {
-                    if (response.status == 200) {
-                        alert('da them vao gio hang');
-                        window.location.reload();
-                    }
-                })
-                .catch((error) => {
-                    if (error.response && error.response.status === 401) {
-                        Swal.fire({
-                            title: 'Phiên xử lý hết hạn',
-                            text: 'Vui lòng đăng nhập để tiếp tục',
-                            icon: 'warning',
-                            timer: 1500,
-                            showConfirmButton: true,
-                        });
-                    } else if(error.response && error.response.status === 403) {
-                        Swal.fire({
-                            title: 'Bạn chưa đăng nhập',
-                            text: 'Vui lòng đăng nhập để tiếp tục',
-                            icon: 'warning',
-                            timer: 1500,
-                            showConfirmButton: true,
-                        });
-                    }
-                })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        //Format Money
+        const formattedPrice = (price) => {
+            return formatPrice(price);
         }
 
         return {
@@ -219,7 +204,8 @@ export default {
             book,
             addToCart,
             quantity,
-            updateQuantity
+            updateQuantity,
+            formattedPrice
         }
     }
 }

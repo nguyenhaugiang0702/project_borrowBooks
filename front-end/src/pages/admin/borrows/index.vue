@@ -171,7 +171,7 @@ export default {
         const borrow = ref({});
         const getOneBorrow = async (borrowId) => {
             await axios
-                .get(`http://127.0.0.1:3000/api/borrows/${borrowId}`)
+                .get(`http://127.0.0.1:3000/api/borrows/borrow/${borrowId}`)
                 .then((response) => {
                     borrow.value = response.data;
                 })
@@ -195,14 +195,17 @@ export default {
                     }
                 })
                 .catch((error) => {
-                    console.error('Lỗi khi xóa dữ liệu:', error);
-                    Swal.fire({
-                        title: 'Thất bại!',
-                        text: 'Không thể xóa khi sách đang được mượn',
-                        icon: 'error',
-                        timer: 1500,
-                        showConfirmButton: true,
-                    });
+                    if (error.response && error.response.status === 400) {
+                        Swal.fire({
+                            title: 'Thất bại!',
+                            text: 'Không thể xóa khi sách đang được mượn',
+                            icon: 'error',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    } else {
+                        console.error('Lỗi khi xóa dữ liệu:', error);
+                    }
                 });
         };
 
@@ -250,11 +253,11 @@ export default {
             if (status == 'Đang mượn') {
                 await getOneBorrow(borrowId);
                 const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', borrow.value.books);
-                if (res.status == 204) {
-                    await axios.put(`http://127.0.0.1:3000/api/borrows/${borrowId}`, { status: status })
+                if (res.status == 200) {
+                    await axios.put(`http://127.0.0.1:3000/api/borrows/update/${borrowId}`, { status: status })
                         .then((response) => {
                             if (response.status == 200) {
-                                window.location.reload();
+                                getBorrows();
                             }
                         })
                         .catch((error) => {
@@ -269,18 +272,16 @@ export default {
                     })
                 }
             } else if (status == 'Đã hủy') {
-                await axios.put(`http://127.0.0.1:3000/api/borrows/${borrowId}`, { status: status })
+                await axios.put(`http://127.0.0.1:3000/api/borrows/update/${borrowId}`, { status: status })
                     .then((response) => {
                         if (response.status == 200) {
-                            window.location.reload();
+                            getBorrows();
                         }
                     })
                     .catch((error) => {
                         console.log(error);
                     })
             }
-
-
         }
 
         function createModal(data, type, row, meta) {

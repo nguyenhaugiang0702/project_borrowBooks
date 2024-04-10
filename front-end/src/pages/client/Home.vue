@@ -58,8 +58,8 @@
     <div class="container my-5">
         <h3 class="text-center my-5">Các Sách Mới</h3>
         <div class="row row-cols-1 row-cols-md-4 mx-auto">
-            <ListBook namePage="homePage"/>
-            <router-link :to="{name : 'booksPage'}" class="btn btn-primary mt-4 mx-auto">Xem Thêm</router-link>
+            <ListBook namePage="homePage" />
+            <router-link :to="{ name: 'booksPage' }" class="btn btn-primary mt-4 mx-auto">Xem Thêm</router-link>
         </div>
     </div>
 </template>
@@ -67,8 +67,9 @@
 
 import Carousel from '../../components/client/Carousel.vue';
 import Footer from '../../components/client/Footer.vue';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import ListBook from '../../components/client/books/ListBook.vue'
+import ApiService from '@/service/ApiService';
 
 export default {
     components: {
@@ -78,17 +79,18 @@ export default {
     },
     setup() {
         const books = ref([]);
+        const apiService = new ApiService();
         const getBooks = async () => {
-            await axios
-                .get('http://127.0.0.1:3000/api/books/productsHome')
-                .then((respones) => {
-                    books.value = respones.data;
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
+            const response = await apiService.get('books/productsHome');
+            if (response.status === 200) {
+                books.value = response.data;
+            }
         }
-        getBooks();
+
+        onMounted(() => {
+            getBooks();
+        })
+
         return {
             getBooks,
             books,

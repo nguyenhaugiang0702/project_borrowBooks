@@ -25,35 +25,24 @@
 <script>
 import { ref, onMounted } from 'vue';
 import Cookies from 'js-cookie';
+import ApiService from '@/service/ApiService';
 export default {
     setup() {
         const userInfo = ref({});
+        const apiService = new ApiService();
         const getUserInfo = async () => {
             const token = Cookies.get('accessToken');
-            await axios.get(`http://localhost:3000/api/users/${token}`)
-                .then((response) => {
+            if (token) {
+                try {
+                    const response = await apiService.get(`users/${token}`)
                     if (response.status == 200) {
                         userInfo.value = response.data;
                     }
-                }).catch((error) => {
-                    if (error.response && error.response.status === 401) {
-                        Swal.fire({
-                            title: 'Phiên xử lý hết hạn',
-                            text: 'Vui lòng đăng nhập để tiếp tục',
-                            icon: 'warning',
-                            timer: 1500,
-                            showConfirmButton: true,
-                        });
-                    } else if (error.response && error.response.status === 403) {
-                        Swal.fire({
-                            title: 'Bạn chưa đăng nhập',
-                            text: 'Vui lòng đăng nhập để tiếp tục',
-                            icon: 'warning',
-                            timer: 1500,
-                            showConfirmButton: true,
-                        });
-                    }
-                });
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+
         }
 
         onMounted(() => {

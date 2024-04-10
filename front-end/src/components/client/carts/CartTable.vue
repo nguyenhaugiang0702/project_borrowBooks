@@ -41,12 +41,12 @@
                     </td>
                     <td>
                         <span class="price text-danger fw-bold">
-                            {{ formatPrice(book.book_price) }}
+                            {{ formattedPrice(book.book_price) }}
                         </span>
                     </td>
                     <td>
                         <span class="price text-danger fw-bold">
-                            {{ formatPrice(book.total_price) }}
+                            {{ formattedPrice(book.total_price) }}
                         </span>
                     </td>
                     <td><a href=""> <button @click="deleteBook(book.book_id, $event)" class="btn btn-danger"
@@ -70,7 +70,8 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
-
+import ApiService from '../../../service/ApiService';
+import { formatPrice } from '@/utils/utils';
 export default {
     setup(props, { emit }) {
 
@@ -81,19 +82,15 @@ export default {
         const bookNumber = ref({})
         const store = useStore();
         const router = useRouter();
+        const apiService = new ApiService();
 
         const getCarts = async () => {
             const token = Cookies.get('accessToken');
             if (token) {
-                await axios.get(`http://127.0.0.1:3000/api/cart/${token}`)
-                    .then((response) => {
-                        if (response.status == 200) {
-                            booksInCart.value = response.data;
-                        }
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    })
+                const response = await apiService.get(`cart/${token}`);
+                if (response.status === 200) {
+                    booksInCart.value = response.data;
+                }
             }
         }
 
@@ -134,29 +131,23 @@ export default {
             event.preventDefault();
             const token = Cookies.get('accessToken');
             if (token) {
-                const isConfirmed = await Swal.fire({
-                    title: 'Xác nhận xóa',
-                    text: 'Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Đồng ý',
-                    cancelButtonText: 'Hủy bỏ',
-                })
-                if (isConfirmed.isConfirmed) {
-                    await axios.delete(`http://127.0.0.1:3000/api/cart/${book_id}`, {
-                        headers: {
-                            'Authorization': 'Bearer ' + token
-                        }
+                try {
+                    const isConfirmed = await Swal.fire({
+                        title: 'Xác nhận xóa',
+                        text: 'Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Đồng ý',
+                        cancelButtonText: 'Hủy bỏ',
                     })
-                        .then((response) => {
-                            if (response.status == 200) {
-                                getCarts();
-                            }
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                        });
-                    window.location.reload();
+                    if (isConfirmed.isConfirmed) {
+                        const response = await apiService.delete(`cart/${book_id}`, token)
+                        if (response.status == 200) {
+                            getCarts();
+                        }
+                    }
+                } catch (error) {
+                    console.log(error);
                 }
             }
             return;
@@ -208,54 +199,32 @@ export default {
             event.preventDefault();
             const token = Cookies.get('accessToken');
             if (token) {
-                const isConfirmed = await Swal.fire({
-                    title: 'Xác nhận xóa',
-                    text: 'Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi giỏ hàng?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Đồng ý',
-                    cancelButtonText: 'Hủy bỏ',
-                });
+                try {
+                    const isConfirmed = await Swal.fire({
+                        title: 'Xác nhận xóa',
+                        text: 'Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi giỏ hàng?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Đồng ý',
+                        cancelButtonText: 'Hủy bỏ',
+                    });
 
-                if (isConfirmed.isConfirmed) {
-                    await axios.delete('http://127.0.0.1:3000/api/cart/deleteAll', {
-                        headers: {
-                            'Authorization': 'Bearer ' + token
+                    if (isConfirmed.isConfirmed) {
+                        const response = await apiService.delete('cart/deleteAll', token)
+                        if (response.status == 200) {
+                            await Swal.fire({
+                                title: 'Xóa thành công',
+                                text: 'Xóa thành công tất cả sách khỏi giỏ hàng',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500
+                            })
+                            getCarts();
                         }
-                    })
-                        .then(async (response) => {
-                            if (response.status == 200) {
-                                await Swal.fire({
-                                    title: 'Xóa thành công',
-                                    text: 'Xóa thành công tất cả sách khỏi giỏ hàng',
-                                    icon: 'success',
-                                    showConfirmButton: false,
-                                    timer: 1500
-                                })
-                                window.location.reload();
-                            }
-                        })
-                        .catch((error) => {
-                            if (error.response && error.response.status === 401) {
-                                Swal.fire({
-                                    title: 'Phiên xử lý hết hạn',
-                                    text: 'Vui lòng đăng nhập để tiếp tục',
-                                    icon: 'warning',
-                                    timer: 1500,
-                                    showConfirmButton: true,
-                                });
-                            } else if (error.response && error.response.status === 403) {
-                                Swal.fire({
-                                    title: 'Bạn chưa đăng nhập',
-                                    text: 'Vui lòng đăng nhập để tiếp tục',
-                                    icon: 'warning',
-                                    timer: 1500,
-                                    showConfirmButton: true,
-                                });
-                            }
-                        })
+                    }
+                } catch (error) {
+                    console.log(error);
                 }
-
             }
         }
 
@@ -263,8 +232,8 @@ export default {
             propsBooksGotoCart();
         }
 
-        const formatPrice = (price) => {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        const formattedPrice = (price) => {
+            return formatPrice(price);
         }
 
         return {
@@ -281,7 +250,7 @@ export default {
             propsBooksGotoCart,
             deleteAllBook,
             handleCheckboxChange,
-            formatPrice
+            formattedPrice
         }
     }
 }

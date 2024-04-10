@@ -49,57 +49,43 @@
 import { ref, onMounted } from 'vue'
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import ApiService from '@/service/ApiService';
 export default {
     setup() {
         const userInfo_address = ref({});
+        const apiService = new ApiService();
+
         const getOneAddress = async () => {
             const token = Cookies.get('accessToken');
-            await axios.get(`http://localhost:3000/api/users/${token}`)
-                .then((response) => {
-                    if (response.status == 200) {
-                        userInfo_address.value = response.data
-                    }
-                }).catch((err) => {
-                    console.log(err);
-                });
+            if (token) {
+                const response = await apiService.get(`users/${token}`);
+                if (response.status === 200) {
+                    userInfo_address.value = response.data
+                }
+            }
         }
 
         const updateAddress = async () => {
-            try {
-                const token = Cookies.get('accessToken');
-                const textareaValue = document.getElementById('user_address').value;
-                const response = await axios.put(`http://localhost:3000/api/users/${token}`, { user_address: textareaValue })
-                if (response.status == 200) {
-                    await Swal.fire({
-                        title: 'Cập nhật địa chỉ thành công',
-                        text: 'Bạn đã cập nhật thành công địa chỉ mới',
-                        icon: 'success',
-                        confirmButtonText: 'Đồng ý',
-                        timer: 1500,
-                    });
-                    window.location.reload();
-                }
-            } catch (error) {
-                if (error.response && error.response.status === 401) {
-                    Swal.fire({
-                        title: 'Phiên xử lý hết hạn',
-                        text: 'Vui lòng đăng nhập để tiếp tục',
-                        icon: 'warning',
-                        timer: 1500,
-                        showConfirmButton: true,
-                    });
-                } else if (error.response && error.response.status === 403) {
-                    Swal.fire({
-                        title: 'Bạn chưa đăng nhập',
-                        text: 'Vui lòng đăng nhập để tiếp tục',
-                        icon: 'warning',
-                        timer: 1500,
-                        showConfirmButton: true,
-                    });
+            const token = Cookies.get('accessToken');
+            if (token) {
+                try {
+                    const textareaValue = document.getElementById('user_address').value;
+                    const response = await apiService.put(`users/${token}`, { user_address: textareaValue });
+                    if (response.status == 200) {
+                        await Swal.fire({
+                            title: 'Cập nhật địa chỉ thành công',
+                            text: 'Bạn đã cập nhật thành công địa chỉ mới',
+                            icon: 'success',
+                            confirmButtonText: 'Đồng ý',
+                            timer: 1500,
+                        });
+                        $('#updateAddress').modal('hide');
+                        getOneAddress();
+                    }
+                } catch (error) {
+                    console.log(error);
                 }
             }
-
-
         }
 
         onMounted(() => {

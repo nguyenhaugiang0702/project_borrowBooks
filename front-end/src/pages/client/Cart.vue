@@ -16,7 +16,8 @@
                 <div class="card-header row">Tổng Tiền Phải Thanh Toán:</div>
                 <div class="card-body fw-bold">
                     <span>Tổng tiền : </span>
-                    <span class="price text-danger">{{ selectedBooksTotalPrice ? formatPrice(selectedBooksTotalPrice) :
+                    <span class="price text-danger">{{ selectedBooksTotalPrice ? formattedPrice(selectedBooksTotalPrice)
+                        :
                         '0 đ' }}</span>
                 </div>
             </div>
@@ -33,7 +34,8 @@ import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import CartTable from '../../components/client/carts/CartTable.vue';
 import Cookies from 'js-cookie';
-import { error } from 'jquery';
+import ApiService from '@/service/ApiService';
+import { formatPrice } from '@/utils/utils';
 
 export default {
     components: {
@@ -42,6 +44,7 @@ export default {
     setup() {
         const router = useRouter();
         const selectedBooksArray = ref([]);
+        const apiService = new ApiService();
 
         const handleSelectedBooksUpdated = async (newSelectedBooksArray) => {
             selectedBooksArray.value = newSelectedBooksArray;
@@ -59,48 +62,15 @@ export default {
                 });
                 return;
             }
-            try {
-                const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', selectedBooksArray.value);
-                if (res.status == 200) {
-                    try {
-                        const token = Cookies.get('accessToken');
-                        await axios.post('http://127.0.0.1:3000/api/checkout', { selectedBooks: selectedBooksArray.value }, {
-                            headers: {
-                                'Authorization': 'Bearer ' + token
-                            }
-                        });
+            const token = Cookies.get('accessToken');
+            if (token) {
+                try {
+                    const response = await apiService.post('books/checkNumber', selectedBooksArray.value);
+                    if (response.status === 200) {
+                        await apiService.post('checkout', { selectedBooks: selectedBooksArray.value }, token);
                         router.push({ name: 'checkout' });
-                    } catch (error) {
-                        if (error.response && error.response.status === 401) {
-                            Swal.fire({
-                                title: 'Phiên xử lý hết hạn',
-                                text: 'Vui lòng đăng nhập để tiếp tục',
-                                icon: 'warning',
-                                timer: 1500,
-                                showConfirmButton: true,
-                            });
-                        } else if (error.response && error.response.status === 403) {
-                            Swal.fire({
-                                title: 'Bạn chưa đăng nhập',
-                                text: 'Vui lòng đăng nhập để tiếp tục',
-                                icon: 'warning',
-                                timer: 1500,
-                                showConfirmButton: true,
-                            });
-                        }
                     }
-
-                }
-            } catch (error) {
-                if (error.response && error.response.status === 403) {
-                    await Swal.fire({
-                        title: 'Lỗi',
-                        text: error.response.data.message,
-                        icon: 'error',
-                        timer: 1500,
-                        showConfirmButton: false,
-                    });
-                } else {
+                } catch (error) {
                     console.log(error);
                 }
             }
@@ -113,15 +83,15 @@ export default {
             }
         });
 
-        const formatPrice = (price) => {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        const formattedPrice = (price) => {
+            return formatPrice(price);
         }
 
         return {
             handleSelectedBooksUpdated,
             GotoCheckOut,
             selectedBooksTotalPrice,
-            formatPrice
+            formattedPrice,
         }
 
     }
