@@ -13,6 +13,7 @@ class UserService {
             user_phone: payload.user_phone,
             user_password: payload.user_password,
             user_address: payload.user_address || null,
+            user_role: payload.user_role || 'user' 
         };
         // Remove undefined fields
         Object.keys(user).forEach(
@@ -85,11 +86,6 @@ class UserService {
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
         });
         return result;
-    }
-
-    // findFavorite
-    async findFavorite() {
-        return await this.find({ favorite: true });
     }
 
     // deleteAll

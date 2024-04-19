@@ -1,12 +1,13 @@
 const express = require("express");
 const books = require("../controllers/book.controller");
+const authenticateToken = require("../middelware/jwt_admin");
 
 const router = express.Router();
 router
     .route("/")
     .get(books.findALL)
-    .post(books.create)
-    .delete(books.deleteALL);
+    .post(authenticateToken.authenticateTokenFromHeader, books.create);
+    // .delete(books.deleteALL);
 
 // Tìm kiếm sách
 router
@@ -31,7 +32,7 @@ router
 router
     .route("/:id")
     .get(books.findOne)
-    .put(books.update)
-    .delete(books.delete);
+    .put(authenticateToken.authenticateTokenFromHeader, books.update)
+    .delete(authenticateToken.authenticateTokenFromHeader, books.delete);
 
 module.exports = router;

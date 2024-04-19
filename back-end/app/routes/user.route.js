@@ -1,6 +1,7 @@
 const express = require("express");
 const users = require("../controllers/user.controller");
 const authenticateToken = require("../middelware/jwt");
+const authenticateTokenAdmin = require("../middelware/jwt_admin");
 
 const router = express.Router();
 router
@@ -14,8 +15,8 @@ router
 router
     .route("/")
     .get(users.findALL)
-    .post(users.create)
-    .delete(users.deleteALL);
+    .post(users.create);
+    // .delete(users.deleteALL);
 
 router
     .route("/login")
@@ -23,6 +24,6 @@ router
 
 router
     .route("/:id")
-    .delete(users.delete);
+    .delete(authenticateTokenAdmin.authenticateTokenFromHeader, users.delete);
 
 module.exports = router;

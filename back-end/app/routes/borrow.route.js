@@ -1,6 +1,7 @@
 const express = require("express");
 const borrow = require("../controllers/borrow.controller");
 const authenticateToken = require("../middelware/jwt");
+const authenticateTokenAdmin = require("../middelware/jwt_admin");
 
 const router = express.Router();
 
@@ -22,16 +23,16 @@ router
 // Cập nhật số lượng sách trả (Admin)
 router
     .route("/updateReturnNumber/:id")
-    .put(borrow.updateReturnBookNumber)
+    .put(authenticateTokenAdmin.authenticateTokenFromHeader, borrow.updateReturnBookNumber)
 
 router 
     .route("/update/:borrowId")
-    .put(borrow.updateStatusOfAdmin) // Bên admin
+    .put(authenticateTokenAdmin.authenticateTokenFromHeader, borrow.updateStatusOfAdmin) // Bên admin
     
 // Cập nhật trạng thái đơn mượn và số lượng sách mượn trong collection 'books' 
 router
     .route("/:borrowId")
     .put(authenticateToken.authenticateTokenFromHeader, borrow.updateStatus) // bên user
-    .delete(borrow.deleteBorrowWithId)
+    .delete(authenticateTokenAdmin.authenticateTokenFromHeader, borrow.deleteBorrowWithId)
 
 module.exports = router;

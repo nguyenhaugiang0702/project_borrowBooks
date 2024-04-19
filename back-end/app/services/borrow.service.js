@@ -125,6 +125,15 @@ class BorrowService {
         return result;
     }
 
+    async findActiveBorrowByUserId(userId) {
+        try {
+            const activeBorrow = await this.Borrow.findOne({ user_id: new ObjectId(userId) , status: "Đang mượn" });
+            return activeBorrow;
+        } catch (error) {
+            throw new Error("Error finding active borrow by user ID");
+        }
+    }
+
     async deleteWithUserId(id) {
         const result = await this.Borrow.deleteMany({
             user_id: ObjectId.isValid(id) ? new ObjectId(id) : null,
@@ -185,9 +194,9 @@ class BorrowService {
             // Kiểm tra xem số lượng đã trả đủ chưa
             const borrow = await this.Borrow.findOne({ _id: new ObjectId(borrowId) });
             // Tính tổng số lượng sách mượn
-            const totalQuantityBorrowed = borrow.books.reduce((total, book) => total + book.quantity, 0);
+            const totalQuantityBorrowed = borrow.books.reduce((total, book) => total + parseInt(book.quantity), 0);
             // Tính tổng số lượng sách đã trả
-            const totalReturned = borrow.books.reduce((total, book) => total + book.return_number, 0);
+            const totalReturned = borrow.books.reduce((total, book) => total + parseInt(book.return_number), 0);
             if (totalReturned == totalQuantityBorrowed) {
                 await this.Borrow.updateOne({ _id: new ObjectId(borrowId) }, { $set: { status: 'Đã trả' } });
             }

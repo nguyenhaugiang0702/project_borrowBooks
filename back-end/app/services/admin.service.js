@@ -11,6 +11,7 @@ class adminService {
         const admin = {
             admin_name: payload.admin_name,
             admin_pass: payload.admin_pass,
+            admin_role: payload.admin_role || 'admin',
         };
         // Remove undefined fields
         Object.keys(admin).forEach(

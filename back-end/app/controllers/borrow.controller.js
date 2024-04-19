@@ -158,49 +158,6 @@ exports.getBorrowWithID = async (req, res, next) => {
     }
 }
 
-exports.getCart = async (req, res, next) => {
-    try {
-        const cartService = new CartService(MongoDB.client);
-        const bookService = new BookService(MongoDB.client);
-        const user_id = new ObjectId(req.params.id);
-        const cart = await cartService.find({ user_id });
-        if (!cart) {
-            return next(new ApiError(404, `Không tìm thấy cart của người dùng ${user_id}`));
-        }
-        const booksWithImgAndName = await Promise.all(
-            cart[0].books.map(async (item) => {
-                const book = await bookService.findById(item.book_id);
-                const total_price = item.quantity * book.book_price;
-                return {
-                    book_id: item.book_id,
-                    quantity: item.quantity,
-                    book_name: book ? book.book_name : null,
-                    book_image: book ? book.book_image : null,
-                    book_price: book ? book.book_price : null,
-                    total_price: book ? total_price : null,
-                }
-            })
-        );
-
-        // Lọc ra các cuốn sách không null (nếu có)
-        const validBooks = booksWithImgAndName.filter(book => book !== null);
-
-        // Tính tổng giá trị của toàn bộ giỏ hàng
-        const totalCartPrice = validBooks.reduce((total, book) => total + book.total_price, 0);
-
-        const cartWithBooks = {
-            user_id: cart[0].user_id,
-            books: booksWithImgAndName,
-            totalCartPrice: totalCartPrice,
-        };
-        return res.send(cartWithBooks);
-    } catch (error) {
-        return next(
-            new ApiError(500, "An Error Occurred while retrieving contacts")
-        );
-    };
-};
-
 exports.update = async (req, res, next) => {
     if (Object.keys(req.body).length == 0) {
         return next(new ApiError(400, "Data to update can not be empty"));

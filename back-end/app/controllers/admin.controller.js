@@ -12,10 +12,10 @@ exports.login = async (req, res, next) => {
     try {
         const adminService = new AdminService(MongoDB.client);
         const admin = await adminService.authenticate(req.body);
-        // const token = jwt.sign({ _id: admin._id }, 'myToken', { expiresIn: '1h' });
-
+        const accessToken = jwt.sign({ admin_id: admin._id }, 'my_secret_key_admin', { expiresIn: 24 * 60 * 60 });
         return res.json({
             message: 'Thanh cong',
+            accessToken: accessToken,
         });
     } catch (error) {
         const errorMessage = error.message || "Có lỗi xảy ra";

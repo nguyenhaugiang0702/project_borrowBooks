@@ -12,7 +12,7 @@ exports.create = async (req, res, next) => {
 
     try {
         const userService = new UserService(MongoDB.client);
-        const existingUserByName = await userService.findOneUserByName(req.body.user_name );
+        const existingUserByName = await userService.findOneUserByName(req.body.user_name);
         if (existingUserByName) {
             return next(new ApiError(400, `Tồn tại người dùng có tên ${req.body.user_name}`));
         }
@@ -107,6 +107,13 @@ exports.delete = async (req, res, next) => {
     try {
         const userService = new UserService(MongoDB.client);
         const borrowService = new BorrowService(MongoDB.client);
+        const activeBorrow = await borrowService.findActiveBorrowByUserId(req.params.id);
+        if (activeBorrow) {
+            // Kiểm tra user có đang mượn không, nếu đang mượn không thể xóa
+            return next(
+                new ApiError(400, 'Người dùng có đơn mượn đang mượn, không thể xóa.')
+            );
+        }
         const document = await userService.delete(req.params.id);
         if (!document) {
             return next(new ApiError(404, "user not found"));
