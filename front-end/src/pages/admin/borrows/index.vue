@@ -51,6 +51,7 @@ DataTable.use(pdfmake);
 DataTable.use(ButtonsHtml5);
 import $ from 'jquery';
 import Swal from 'sweetalert2';
+import Cookies from "js-cookie";
 
 export default {
     components: {
@@ -181,7 +182,10 @@ export default {
         };
 
         const deleteborrow = async (borrowId) => {
-            await axios.delete(`http://127.0.0.1:3000/api/borrows/${borrowId}`)
+            const token = Cookies.get('accessToken');
+            await axios.delete(`http://127.0.0.1:3000/api/borrows/${borrowId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
                 .then((response) => {
                     if (response.status === 200) {
                         Swal.fire({
@@ -203,8 +207,22 @@ export default {
                             timer: 1500,
                             showConfirmButton: true,
                         });
-                    } else {
-                        console.error('Lỗi khi xóa dữ liệu:', error);
+                    } else if (error.response && error.response.status === 403) {
+                        Swal.fire({
+                            title: 'Bạn chưa đăng nhập',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    } else if (error.response && error.response.status === 401) {
+                        Swal.fire({
+                            title: 'Phiên xử lý hết hạn',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
                     }
                 });
         };
@@ -250,11 +268,14 @@ export default {
         });
 
         const updateStatusBorrrow = async (borrowId, status) => {
+            const token = Cookies.get('accessToken');
             if (status == 'Đang mượn') {
                 await getOneBorrow(borrowId);
                 const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', borrow.value.books);
                 if (res.status == 200) {
-                    await axios.put(`http://127.0.0.1:3000/api/borrows/update/${borrowId}`, { status: status })
+                    await axios.put(`http://127.0.0.1:3000/api/borrows/update/${borrowId}`, { status: status }, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    })
                         .then((response) => {
                             if (response.status == 200) {
                                 getBorrows();
@@ -270,16 +291,51 @@ export default {
                         icon: 'warning',
                         confirmButtonColor: false,
                     })
+                    if (error.response && error.response.status === 403) {
+                        Swal.fire({
+                            title: 'Bạn chưa đăng nhập',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    } else if (error.response && error.response.status === 401) {
+                        Swal.fire({
+                            title: 'Phiên xử lý hết hạn',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    }
                 }
             } else if (status == 'Đã hủy') {
-                await axios.put(`http://127.0.0.1:3000/api/borrows/update/${borrowId}`, { status: status })
+                await axios.put(`http://127.0.0.1:3000/api/borrows/update/${borrowId}`, { status: status }, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
                     .then((response) => {
                         if (response.status == 200) {
                             getBorrows();
                         }
                     })
                     .catch((error) => {
-                        console.log(error);
+                        if (error.response && error.response.status === 403) {
+                        Swal.fire({
+                            title: 'Bạn chưa đăng nhập',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    } else if (error.response && error.response.status === 401) {
+                        Swal.fire({
+                            title: 'Phiên xử lý hết hạn',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    }
                     })
             }
         }
@@ -356,6 +412,7 @@ export default {
         });
 
         const updateReturnNumberBook = async (borrowId) => {
+            const token = Cookies.get('accessToken');
             const updatedBooks = [];
             $(`#DetailModal${borrowId} [data-book-id]`).each(function () {
                 const bookId = $(this).data('book-id');
@@ -363,7 +420,9 @@ export default {
                 updatedBooks.push({ book_id: bookId, return_number: returnNumber });
             });
 
-            axios.put(`http://127.0.0.1:3000/api/borrows/updateReturnNumber/${borrowId}`, { books: updatedBooks })
+            axios.put(`http://127.0.0.1:3000/api/borrows/updateReturnNumber/${borrowId}`, { books: updatedBooks }, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
                 .then(async response => {
                     if (response.status === 200) {
                         await Swal.fire({
@@ -375,12 +434,28 @@ export default {
                     }
                 })
                 .catch(error => {
-                    console.log(error);
                     Swal.fire({
                         title: 'Cập nhật thất bại',
                         text: 'Đã xảy ra lỗi trong quá trình cập nhật số lượng trả',
                         icon: 'error'
                     });
+                    if (error.response && error.response.status === 403) {
+                        Swal.fire({
+                            title: 'Bạn chưa đăng nhập',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    } else if (error.response && error.response.status === 401) {
+                        Swal.fire({
+                            title: 'Phiên xử lý hết hạn',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    }
                 });
         }
 

@@ -26,7 +26,7 @@
                             id="publisher_id" name="publisher_id">
                             <option value="">Chọn thể loại</option>
                             <option :value="publisher._id" v-for="publisher in publishers" :key="publisher._id">{{
-                    publisher.publisher_name }}</option>
+                                publisher.publisher_name }}</option>
                         </select>
                     </div>
                     <div class="mb-3 form-group">
@@ -57,6 +57,7 @@
 import { ref, onMounted } from "vue";
 import { useMenu } from "../../../store/use-menu.js";
 import Swal from 'sweetalert2';
+import Cookies from "js-cookie";
 export default {
     setup() {
         const store = useMenu();
@@ -76,10 +77,12 @@ export default {
             Object.entries(newBook.value).map(([key, value]) => {
                 formData.append(key, value);
             })
+            const token = Cookies.get('accessToken');
             await axios.post("http://127.0.0.1:3000/api/books", formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Accept': 'multipart/form-data',
+                    'Authorization': 'Bearer ' + token,
                 },
             })
                 .then((response) => {
@@ -106,17 +109,30 @@ export default {
                 .catch((error) => {
                     if (error.response.status == 400) {
                         Swal.fire({
-                        title: 'Thất bại',
-                        text: 'Vui lòng kiểm tra lại các trường',
-                        icon: 'error',
-                        timer: 1500, 
-                        showConfirmButton: false, 
-                    });
-                    } else {
-                        console.log(error)
+                            title: 'Thất bại',
+                            text: 'Vui lòng kiểm tra lại các trường',
+                            icon: 'error',
+                            timer: 1500,
+                            showConfirmButton: false,
+                        });
                     }
-                    
-                    
+                    else if (error.response && error.response.status === 403) {
+                        Swal.fire({
+                            title: 'Bạn chưa đăng nhập',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    } else if (error.response && error.response.status === 401) {
+                        Swal.fire({
+                            title: 'Phiên xử lý hết hạn',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    }
                 });
         };
 

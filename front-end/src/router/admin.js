@@ -9,7 +9,7 @@ const admin = [
         component: () => import("../pages/admin/users/index.vue"),
       },
       {
-        path: "books",
+        path: "",
         name: "admin-books",
         component: () => import("../pages/admin/books/index.vue"),
       },

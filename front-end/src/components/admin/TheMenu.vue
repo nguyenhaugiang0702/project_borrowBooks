@@ -24,6 +24,12 @@
                 <span>Mượn Sách</span>
             </router-link>
         </a-menu-item>
+        <a-menu-item>
+            <a @click="logout" class="text-decoration-none">
+                <i class="fa-solid fa-power-off me-2"></i>
+                <span>Đăng xuất</span>
+            </a>
+        </a-menu-item>
     </a-menu>
 </template>
 <script>
@@ -33,8 +39,15 @@ import { useMenu } from "../../store/use-menu.js";
 export default defineComponent({
     setup() {
         const store = useMenu();
+        const logout = () => {
+            document.cookie = 'accessToken=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;';
+            document.cookie = 'user_name=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;';
+            delete axios.defaults.headers.common['Authorization'];
+            window.location.href = "/admin";
+        }
         const { selectedKeys, openKeys } = store;
         return {
+            logout,
             ...storeToRefs(store)
         }
     },

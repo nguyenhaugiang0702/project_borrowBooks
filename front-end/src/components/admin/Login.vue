@@ -34,12 +34,13 @@
                                         </div>
 
                                         <div class="pt-1 mb-4">
-                                            <button type="submit" class="btn btn-primary text-white btn-lg btn-block">Login</button>
+                                            <button type="submit"
+                                                class="btn btn-primary text-white btn-lg btn-block">Login</button>
                                         </div>
 
                                         <a class="small text-muted" href="#!">Quên mật Khẩu?</a>
-                                        <p class="mb-5 pb-lg-2" style="color: #393f81;">Bạn không có tài khoản? <a href="#!"
-                                                style="color: #393f81;">Đăng ký ở đây</a></p>
+                                        <p class="mb-5 pb-lg-2" style="color: #393f81;">Bạn không có tài khoản? <a
+                                                href="#!" style="color: #393f81;">Đăng ký ở đây</a></p>
                                         <a href="#!" class="small text-muted">Terms of use.</a>
                                         <a href="#!" class="small text-muted">Privacy policy</a>
                                     </form>
@@ -57,6 +58,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import Swal from 'sweetalert2';
+import Cookies from 'js-cookie';
 
 export default {
     setup() {
@@ -72,19 +74,22 @@ export default {
             await axios.post('http://127.0.0.1:3000/api/admins', admin.value)
                 .then((res) => {
                     if (res.status == 200) {
-                            admin.value = {
-                                admin_name: '',
-                                admin_pass: ''
-                            }
-                            store.dispatch('login',{ userType: 'admin' });
-                            router.push({ name: 'admin-books' });
-                            Swal.fire({
-                                title: 'Thành công!',
-                                text: 'Đăng nhập thành công.',
-                                icon: 'success',
-                                timer: 1500, 
-                                showConfirmButton: false, 
-                            });
+                        admin.value = {
+                            admin_name: '',
+                            admin_pass: ''
+                        }
+                        const token = res.data.accessToken;
+                        Cookies.set('accessToken', token, { expires: 24 });
+                        // store.dispatch('login', { userType: 'admin' });
+                        Swal.fire({
+                            title: 'Thành công!',
+                            text: 'Đăng nhập thành công.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false,
+                        });
+                        window.location.reload();
+                        router.push({name: 'admin-books'});
                     }
                 })
                 .catch((error) => {
@@ -93,8 +98,8 @@ export default {
                             title: 'Thất bại',
                             text: 'Tên người dùng hoặc mật khẩu không đúng.',
                             icon: 'error',
-                            timer: 1500, 
-                            showConfirmButton: false, 
+                            timer: 1500,
+                            showConfirmButton: false,
                         });
                     } else {
                         console.error('Lỗi khi login:', error);

@@ -13,7 +13,8 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="addModalLabel">Thêm Nhà Xuất Bản</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <form @submit.prevent="addNxb()">
@@ -35,12 +36,14 @@
                 </div>
 
                 <!-- Modal edit-->
-                <div class="modal fade" id="editNxbModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                <div class="modal fade" id="editNxbModal" tabindex="-1" aria-labelledby="editModalLabel"
+                    aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="editModalLabel">Sửa Nhà Xuất Bản</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <form @submit.prevent="updateNxb()">
@@ -105,6 +108,7 @@ DataTable.use(DataTableLib);
 DataTable.use(pdfmake);
 DataTable.use(ButtonsHtml5);
 import Swal from 'sweetalert2';
+import Cookies from "js-cookie";
 
 export default {
     components: {
@@ -152,8 +156,11 @@ export default {
         };
 
         const addNxb = async () => {
+            const token = Cookies.get('accessToken');
             await axios
-                .post("http://127.0.0.1:3000/api/publishers", newNxb.value)
+                .post("http://127.0.0.1:3000/api/publishers", newNxb.value, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
                 .then((response) => {
                     if (response.status == 200) {
                         Swal.fire({
@@ -190,7 +197,10 @@ export default {
         });
 
         const deletenxb = async (nxbId, bookIds) => {
-            await axios.delete(`http://127.0.0.1:3000/api/publishers/${nxbId}`, { params: { bookIds } })
+            const token = Cookies.get('accessToken');
+            await axios.delete(`http://127.0.0.1:3000/api/publishers/${nxbId}`, { params: { bookIds } }, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
                 .then((response) => {
                     if (response.status === 200) {
                         Swal.fire({
@@ -213,12 +223,31 @@ export default {
                         timer: 1500,
                         showConfirmButton: false,
                     });
-                    console.error('Lỗi khi login:', error);
+                    if (error.response && error.response.status === 403) {
+                        Swal.fire({
+                            title: 'Bạn chưa đăng nhập',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    } else if (error.response && error.response.status === 401) {
+                        Swal.fire({
+                            title: 'Phiên xử lý hết hạn',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    }
                 });
         };
 
         const updateNxb = () => {
-            axios.put(`http://127.0.0.1:3000/api/publishers/${editedNxb.value._id}`, editedNxb.value)
+            const token = Cookies.get('accessToken');
+            axios.put(`http://127.0.0.1:3000/api/publishers/${editedNxb.value._id}`, editedNxb.value, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
                 .then((response) => {
                     if (response.status == 200) {
                         Swal.fire({
@@ -242,13 +271,32 @@ export default {
                         showConfirmButton: false,
                     });
                     $('#editNxbModal').modal('hide');
-                    console.log(error);
+                    if (error.response && error.response.status === 403) {
+                        Swal.fire({
+                            title: 'Bạn chưa đăng nhập',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    } else if (error.response && error.response.status === 401) {
+                        Swal.fire({
+                            title: 'Phiên xử lý hết hạn',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    }
                 });
         };
 
         $(document).on('click', '#deletenxb', async (event) => {
             const nxbId = $(event.currentTarget).data('id');
-            const resultBooks = await axios.get(`http://127.0.0.1:3000/api/books/publisher/${nxbId}`);
+            const token = Cookies.get('accessToken');
+            const resultBooks = await axios.get(`http://127.0.0.1:3000/api/books/publisher/${nxbId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
             const bookIds = resultBooks.data.map(book => book._id);
             if (resultBooks.data.length > 0) {
                 Swal.fire({

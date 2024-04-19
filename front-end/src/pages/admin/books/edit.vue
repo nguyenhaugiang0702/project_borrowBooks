@@ -38,14 +38,15 @@
                         <div class="form-group">
                             <label for="publisher_year" class="form-label fw-bold">Năm Xuất Bản:</label>
                             <input v-model="editedBook.publisher_year" type="text"
-                                class="form-control border border-dark rounded" name="publisher_year" id="publisher_year">
+                                class="form-control border border-dark rounded" name="publisher_year"
+                                id="publisher_year">
                         </div>
                     </div>
                 </div>
                 <div class="form-group mx-2">
                     <label for="book_description" class="form-label fw-bold">Mô Tả:</label>
-                    <textarea v-model="editedBook.book_description" class="mytextarea form-control" name="book_description"
-                        id="book_description" rows="3" value="">
+                    <textarea v-model="editedBook.book_description" class="mytextarea form-control"
+                        name="book_description" id="book_description" rows="3" value="">
                     </textarea>
                 </div>
                 <div class="d-flex justify-content-center mt-3 mb-5">
@@ -62,6 +63,7 @@ import { ref, onMounted } from "vue";
 import { useMenu } from "../../../store/use-menu.js";
 import { useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
+import Cookies from "js-cookie";
 
 export default {
     setup() {
@@ -105,10 +107,12 @@ export default {
                     formData.append('book_image', value);
                 }
             });
+            const token = Cookies.get('accessToken');
             await axios.put(`http://127.0.0.1:3000/api/books/${bookId.value}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Accept: 'multipart/form-data',
+                    'Authorization': 'Bearer ' + token
                 },
             })
                 .then((response) => {
@@ -125,14 +129,30 @@ export default {
                     }
                 })
                 .catch((error) => {
-                    console.error('Lỗi khi cập nhật sách:', error);
                     Swal.fire({
                         title: 'Thất bại',
                         text: 'Dữ liệu đã chưa được cập nhật.',
                         icon: 'error',
-                        timer: 1500, // Thời gian hiển thị thông báo (ms) 
-                        showConfirmButton: false, // Không hiển thị nút "Xác nhận" 
+                        timer: 1500, 
+                        showConfirmButton: false,
                     });
+                    if (error.response && error.response.status === 403) {
+                        Swal.fire({
+                            title: 'Bạn chưa đăng nhập',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    } else if (error.response && error.response.status === 401) {
+                        Swal.fire({
+                            title: 'Phiên xử lý hết hạn',
+                            text: 'Vui lòng đăng nhập để tiếp tục',
+                            icon: 'warning',
+                            timer: 1500,
+                            showConfirmButton: true,
+                        });
+                    }
                 });
         };
 
@@ -159,4 +179,3 @@ export default {
     },
 };
 </script>
-
