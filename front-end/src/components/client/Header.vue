@@ -33,7 +33,7 @@
                         <hr>
                     </li>
                     <li class="row" v-if="userInfo.user_name">
-                        <router-link :to="{ name: 'cart', params: { cartData: JSON.stringify(booksInCart.value) } }"
+                        <router-link :to="{ name: 'cart' }"
                             class="btn btn-warning col-sm-4 mx-auto">Giỏ Hàng</router-link>
                         <router-link :to="{ name: 'checkout' }" class="btn btn-success col-sm-4 mx-auto">Thanh
                             Toán</router-link>
