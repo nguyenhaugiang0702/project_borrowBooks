@@ -265,7 +265,7 @@ export default {
                 .catch((error) => {
                     Swal.fire({
                         title: 'Thất bại',
-                        text: 'Dữ liệu đã chưa được cập nhật.',
+                        text: 'Dữ liệu chưa được cập nhật.',
                         icon: 'error',
                         timer: 1500,
                         showConfirmButton: false,
