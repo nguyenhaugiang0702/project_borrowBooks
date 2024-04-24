@@ -51,6 +51,7 @@ export default {
         };
 
         const GotoCheckOut = async () => {
+            // trả về true nếu tìm thấy ít nhất 1
             const isSelected = Object.values(selectedBooksArray.value).some(value => value);
             if (!isSelected) {
                 Swal.fire({
