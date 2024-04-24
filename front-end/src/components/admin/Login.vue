@@ -56,7 +56,6 @@
 <script>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useStore } from 'vuex';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 
@@ -66,9 +65,7 @@ export default {
             admin_name: '',
             admin_pass: '',
         })
-        const isLoggedIn = ref(false);
         const router = useRouter();
-        const store = useStore();
 
         const loginAdmin = async () => {
             await axios.post('http://127.0.0.1:3000/api/admins', admin.value)
@@ -80,7 +77,6 @@ export default {
                         }
                         const token = res.data.accessToken;
                         Cookies.set('accessToken', token, { expires: 24 });
-                        // store.dispatch('login', { userType: 'admin' });
                         Swal.fire({
                             title: 'Thành công!',
                             text: 'Đăng nhập thành công.',
@@ -109,7 +105,6 @@ export default {
         return {
             loginAdmin,
             admin,
-            isLoggedIn
         }
     }
 }

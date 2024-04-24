@@ -43,7 +43,6 @@ DataTable.use(DataTableLib);
 DataTable.use(pdfmake);
 DataTable.use(ButtonsHtml5);
 import Swal from 'sweetalert2';
-import { get } from "jquery";
 import Cookies from "js-cookie";
 
 export default {

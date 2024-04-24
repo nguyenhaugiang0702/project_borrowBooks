@@ -2,7 +2,6 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router/index.js";
-import store from "./store/index";
 import axios from "axios";
 window.axios=axios;
 import '../src/assets/mycss.css';
@@ -16,7 +15,6 @@ import "ant-design-vue/dist/reset.css";
 
 const app = createApp(App);
 app.use(router);
-app.use(store);
 app.use(createPinia());
 app.use(Button);
 app.use(Card);

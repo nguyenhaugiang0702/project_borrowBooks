@@ -66,8 +66,6 @@
 
 <script>
 import { computed, onMounted, ref, } from 'vue';
-import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import ApiService from '../../../service/ApiService';
@@ -75,13 +73,9 @@ import { formatPrice } from '@/utils/utils';
 export default {
     setup(props, { emit }) {
 
-        const user_id = sessionStorage.getItem('user_id');
         const booksInCart = ref([]);
         const selectedBooks = ref({});
         const selectAll = ref(false);
-        const bookNumber = ref({})
-        const store = useStore();
-        const router = useRouter();
         const apiService = new ApiService();
 
         const getCarts = async () => {
@@ -105,12 +99,13 @@ export default {
         }
 
         const decreaseQuantity = (book, event) => {
+            const token = Cookies.get('accessToken');
             if (document.getElementById(`inputQuantity_${book.book_id}`).value > 1) {
                 document.getElementById(`inputQuantity_${book.book_id}`).value--;
                 updateTotalPrice(book);
                 propsBooksGotoCart();
             } else {
-                if (user_id) {
+                if (token) {
                     deleteBook(book.book_id, event);
                 }
             }
@@ -238,7 +233,6 @@ export default {
 
         return {
             booksInCart,
-            user_id,
             selectedBooks,
             selectAll,
             updateQuantity,

@@ -91,7 +91,6 @@
 import SignInModal from './modals/SignInModal.vue';
 import SignUpModal from './modals/SignUpModal.vue';
 import Search from './Search.vue';
-import { useStore } from 'vuex';
 import { computed, onMounted, ref } from 'vue';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';

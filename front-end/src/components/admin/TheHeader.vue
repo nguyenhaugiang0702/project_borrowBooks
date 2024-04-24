@@ -43,7 +43,6 @@
 <script>
 import { ref } from 'vue';
 import TheMenu from './TheMenu.vue';
-import { useRouter } from 'vue-router';
 export default {
   components: {
     TheMenu,
@@ -51,7 +50,6 @@ export default {
   setup() {
     const open_menu = ref(false);
     const open_admin = ref(false);
-    const router = useRouter();
     const showDrawerMenu = () => {
       open_menu.value = true;
     };

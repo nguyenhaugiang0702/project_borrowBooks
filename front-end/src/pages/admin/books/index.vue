@@ -56,7 +56,6 @@ import $ from 'jquery';
 import Swal from 'sweetalert2';
 import Cookies from "js-cookie";
 import { formatPrice } from "@/utils/utils.js";
-import { data } from "jquery";
 
 export default {
     components: {

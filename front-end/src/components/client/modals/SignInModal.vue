@@ -54,7 +54,6 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import Swal from 'sweetalert2';
 import { useStore } from 'vuex';
 import Cookies from 'js-cookie';
-import ApiService from '@/service/ApiService';
 
 export default {
     components: {
