@@ -58,7 +58,7 @@ class PublisherService {
     };
     const update = this.extractPublisherData(payload);
 
-    const result = await this.Nxb.findOneAndUpdate(
+    const result = await this.Publisher.findOneAndUpdate(
       filter,
       { $set: update },
       { returnDocument: "after" }

@@ -14,8 +14,8 @@ exports.create = async (req, res, next) => {
         return next(new ApiError(500, "Error uploading image"));
       }
 
-      if (!req.body?.book_name == null || !req.body?.book_description == null || !req.body?.book_image == null || !req.body?.book_price == null ||
-        !req.body?.book_number == null || !req.body?.publisher_year == null || !req.body?.publisher_id == null) {
+      if (req.body?.book_name == null || req.body?.book_description == null || req.body?.book_image == null || req.body?.book_price == null ||
+        req.body?.book_number == null || req.body?.publisher_year == null || req.body?.publisher_id == null) {
         return next(new ApiError(400, "Field can not be empty"));
       }
 

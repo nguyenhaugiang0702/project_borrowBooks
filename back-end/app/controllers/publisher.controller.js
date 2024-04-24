@@ -66,7 +66,7 @@ exports.update = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(404, "publisher not found"));
         }
-        return res.send({ messgae: "publisher was updated successfully" });
+        return res.send({ message: "publisher was updated successfully" });
     } catch (error) {
         return next(
             new ApiError(500, `Error updating publisher with id=${req.params.id}`)
