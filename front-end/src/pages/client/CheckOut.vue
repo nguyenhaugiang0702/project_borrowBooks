@@ -25,7 +25,7 @@
                 </div>
                 <div class="mx-4 form-group" v-if="userInfo.user_address != '' && userInfo.user_address != null">
                     <label for="address" class="fw-bold form-label">Địa chỉ:</label>
-                    <textarea rows="4" cols="" class="form-control"
+                    <textarea rows="4" readonly cols="" class="form-control"
                         placeholder="ví dụ: hẻm 51, đường 3/2, ninh kiều, cần thơ">{{ userInfo.user_address }}</textarea>
                 </div>
                 <div class="mx-4 form-group mt-3" v-else>

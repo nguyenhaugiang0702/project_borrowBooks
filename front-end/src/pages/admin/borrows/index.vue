@@ -85,18 +85,14 @@ export default {
                             <div class="fw-bold">(Còn lại: ${remainingQuantity})</div>`;
                 }
             },
-            { data: 'totalPrice' },
-            { data: 'borrow_date', },
-            {
-                data: 'return_date',
-                render: function (data, type, row) {
-                    if (new Date(row.return_date) > new Date(row.duration)) {
-                        return '<div class="text-danger fw-bold">' + data + '</div>' + '<div class="text-danger fw-bold">Trễ hạn</div>';
-                    } else {
-                        return data;
-                    }
-                }
+            { 
+                data: 'totalPrice',
+                render: (data)=> {
+                    return `<div>${formattedPrice(data)}</div>`;
+                }    
             },
+            { data: 'borrow_date', },
+            { data: 'return_date' },
             { data: 'duration' },
             {
                 // cập nhật trạng thái đơn mượn
@@ -355,7 +351,7 @@ export default {
         function createModal(data, type, row, meta) {
             return `
                 <div class="modal fade" id="DetailModal${data}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
+                    <div class="modal-dialog modal-dialog-scrollable">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5" id="exampleModalLabel">Chi tiết mượn</h1>
