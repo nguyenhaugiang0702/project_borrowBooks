@@ -52,7 +52,6 @@ import { ref } from 'vue';
 import * as yup from "yup";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import Swal from 'sweetalert2';
-import { useStore } from 'vuex';
 import Cookies from 'js-cookie';
 
 export default {
@@ -67,7 +66,6 @@ export default {
             user_password: '',
         });
 
-        const store = useStore();
         const showPassword = ref(false);
         const togglePasswordVisibility = () => {
             showPassword.value = !showPassword.value;
@@ -116,12 +114,12 @@ export default {
             user_nameToSignIn: yup
                 .string()
                 .required("Vui lòng nhập tên")
-                .min(1, "Tên phải ít nhất 1 ký tự.")
+                .min(5, "Tên phải ít nhất 5 ký tự.")
                 .max(50, "Tên có nhiều nhất 50 ký tự."),
             user_passwordToSignIn: yup
                 .string()
                 .required("Vui lòng nhập mật khẩu")
-                .min(1, "Mật khẩu phải ít nhất 1 ký tự."),
+                .min(8, "Mật khẩu phải ít nhất 8 ký tự."),
         });
 
         return {

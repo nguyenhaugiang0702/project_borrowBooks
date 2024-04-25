@@ -162,12 +162,12 @@ export default {
             user_name: yup
                 .string()
                 .required("Vui lòng nhập tên")
-                .min(1, "Tên phải ít nhất 1 ký tự.")
+                .min(5, "Tên phải ít nhất 5 ký tự.")
                 .max(50, "Tên có nhiều nhất 50 ký tự."),
             user_password: yup
                 .string()
                 .required("Vui lòng nhập mật khẩu")
-                .min(1, "Mật khẩu phải ít nhất 1 ký tự."),
+                .min(8, "Mật khẩu phải ít nhất 8 ký tự."),
             user_gender: yup
                 .string()
                 .required("Vui lòng chọn giới tính"),
@@ -180,7 +180,7 @@ export default {
             user_cfpassword: yup
                 .string()
                 .required("Vui lòng nhập mật khẩu")
-                .min(1, "Mật khẩu phải ít nhất 1 ký tự.")
+                .min(8, "Mật khẩu phải ít nhất 8 ký tự.")
                 .oneOf([yup.ref('user_password'), null], 'Mật khẩu không khớp'),
         });
 

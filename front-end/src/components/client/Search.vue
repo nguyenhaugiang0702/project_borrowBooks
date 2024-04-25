@@ -8,7 +8,7 @@
             </button>
         </div>
         <div class="position-relative">
-            <ul v-if="isListVisible && books.length > 0" class="list-group position-absolute w-100 border border-dark" style="z-index: 99;">
+            <ul v-if="books.length > 0" class="list-group position-absolute w-100 border border-dark" style="z-index: 99;">
                 <li v-for="book in books" :key="book._id" class="list-group-item">
                     <router-link @click="clickResetSearch" class="row text-decoration-none text-dark"
                         :to="{ name: 'books-detail', params: { id: book._id } }">
@@ -33,7 +33,7 @@ export default {
         const search_key = ref('');
         const books = ref([]);
         const router = useRouter();
-        const isListVisible = ref(true);
+        // const isListVisible = ref(true);
         const apiService = new ApiService();
 
         const searchBook = async () => {
@@ -49,13 +49,13 @@ export default {
 
         const clickResetSearch = () => {
             search_key.value = '';
-            isListVisible.value = false;
+            // isListVisible.value = false;
         }
 
         return {
             search_key,
             books,
-            isListVisible,
+            // isListVisible,
             searchBook,
             clickResetSearch
         };

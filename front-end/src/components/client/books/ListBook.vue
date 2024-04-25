@@ -92,7 +92,6 @@
 <script>
 
 import { ref, onMounted, watchEffect } from 'vue';
-import { useStore } from 'vuex';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import { formatPrice } from '../../../utils/utils';
@@ -116,7 +115,6 @@ export default {
 
         const books = ref([]);
         const publisherName = ref('');
-        const store = useStore();
         const apiService = new ApiService();
 
         // Get books
