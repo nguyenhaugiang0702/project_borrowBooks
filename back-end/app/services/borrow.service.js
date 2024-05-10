@@ -12,9 +12,9 @@ class BorrowService {
             user_id: ObjectId.isValid(payload.user_id) ? new ObjectId(payload.user_id) : null,
             books: payload.checkoutInfoOfUser.map(book => ({
                 book_id: ObjectId.isValid(book.book_id) ? new ObjectId(book.book_id) : null,
-                quantity: book.quantity,
+                quantity: parseInt(book.quantity),
                 return_number: parseInt(payload.return_number) || 0,
-                total_price: book.total_price,
+                total_price: parseInt(book.total_price),
             })),
             totalPrice: payload.totalPrice,
             status: 'Đang chờ xác nhận',
@@ -100,7 +100,7 @@ class BorrowService {
                 }
             );
             return borrowRecord;
-        }else if(status == 'Yêu cầu hủy' || status == 'Đã hủy'){
+        } else if (status == 'Yêu cầu hủy' || status == 'Đã hủy') {
             const borrowRecord = await this.Borrow.findOne(filter);
             borrowRecord.status = status;
             await this.Borrow.updateOne(
@@ -127,7 +127,7 @@ class BorrowService {
 
     async findActiveBorrowByUserId(userId) {
         try {
-            const activeBorrow = await this.Borrow.findOne({ user_id: new ObjectId(userId) , status: "Đang mượn" });
+            const activeBorrow = await this.Borrow.findOne({ user_id: new ObjectId(userId), status: "Đang mượn" });
             return activeBorrow;
         } catch (error) {
             throw new Error("Error finding active borrow by user ID");

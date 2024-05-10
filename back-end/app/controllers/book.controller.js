@@ -14,8 +14,8 @@ exports.create = async (req, res, next) => {
         return next(new ApiError(500, "Error uploading image"));
       }
 
-      if (!req.body?.book_name || !req.body?.book_description || !req.body?.book_image || !req.body?.book_price || 
-        !req.body?.book_number || !req.body?.publisher_year || !req.body?.publisher_id) {
+      if (!req.body?.book_name == null || !req.body?.book_description == null || !req.body?.book_image == null || !req.body?.book_price == null ||
+        !req.body?.book_number == null || !req.body?.publisher_year == null || !req.body?.publisher_id == null) {
         return next(new ApiError(400, "Field can not be empty"));
       }
 
@@ -91,25 +91,24 @@ exports.search = async (req, res, next) => {
 
 exports.checkNumberBook = async (req, res, next) => {
   try {
-
     const bookService = new BookService(MongoDB.client);
     const bookscheckNumber = req.body;
     let errorOccurred = false;
 
     for (const book of bookscheckNumber) {
-      // bên cart gửi qua
-      if (!book.book_borrowedNumber) {
-        const bookInfo = await bookService.findById(book.book_id);
-        const availableBooks = bookInfo.book_number - bookInfo.book_borrowedNumber;
-        if (book.quantity > availableBooks) {
+      // admin gửi qua ( gửi qua có borrowedNumber )
+      if (book.book_borrowedNumber >= 0) {
+        const availableBooks = parseInt(book.book_number) - parseInt(book.book_borrowedNumber);
+        if (parseInt(book.quantity) > availableBooks) {
           res.status(402).send({ message: "Số lượng sách không hợp lệ" });
           errorOccurred = true;
           break;
         }
       }
-      else { // bên admin kiểm tra gửi qua
-        const availableBooks = book.book_number - book.book_borrowedNumber;
-        if (book.quantity > availableBooks) {
+      else { // cart gửi qua
+        const bookInfo = await bookService.findById(book.book_id);
+        const availableBooks = parseInt(bookInfo.book_number) - parseInt(bookInfo.book_borrowedNumber);
+        if (parseInt(book.quantity) > availableBooks) {
           res.status(402).send({ message: "Số lượng sách không hợp lệ" });
           errorOccurred = true;
           break;
