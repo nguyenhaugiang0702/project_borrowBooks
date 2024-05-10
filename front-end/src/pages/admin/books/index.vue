@@ -55,6 +55,8 @@ DataTable.use(ButtonsHtml5);
 import $ from 'jquery';
 import Swal from 'sweetalert2';
 import Cookies from "js-cookie";
+import { formatPrice } from "@/utils/utils.js";
+import { data } from "jquery";
 
 export default {
     components: {
@@ -80,7 +82,7 @@ export default {
             {
                 data: null,
                 render: (row, data) => {
-                    if(row.book_borrowedNumber == row.book_number){
+                    if (row.book_borrowedNumber == row.book_number) {
                         return `
                         <div class="fw-bold">${row.book_borrowedNumber} / ${row.book_number}</div>
                         <div>(Đã được mượn hết sách)</div>
@@ -92,7 +94,12 @@ export default {
                 }
 
             },
-            { data: 'book_price' },
+            {
+                data: 'book_price',
+                render: (data) => {
+                    return `<div>${formattedPrice(data)}</div>`;
+                }
+            },
             {
                 data: '_id',
                 render: (data, type, row, meta) => {
@@ -128,7 +135,7 @@ export default {
         const deleteBook = async (bookId) => {
             const token = Cookies.get('accessToken');
             await axios.delete(`http://127.0.0.1:3000/api/books/${bookId}`, {
-                headers: {'Authorization': 'Bearer ' + token}
+                headers: { 'Authorization': 'Bearer ' + token }
             })
                 .then((response) => {
                     if (response.status === 200) {
@@ -188,6 +195,10 @@ export default {
             });
         });
 
+        const formattedPrice = (price) => {
+            return formatPrice(price);
+        }
+
         onMounted(() => {
             getBooks();
         });
@@ -196,7 +207,8 @@ export default {
             getBooks,
             columns,
             books,
-            deleteBook
+            deleteBook,
+            formattedPrice
         }
     }
 }

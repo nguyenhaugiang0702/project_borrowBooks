@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-sm-2 mt-4">
                 <img class="w-100" src="../../assets/images/logo1.png" alt="">
-                <h4 class="text-white mt-4">Website bán sách số 1 Việt Nam</h4>
+                <h4 class="text-white mt-4">Website mượn trả sách số 1 Việt Nam</h4>
             </div>
 
             <div class="col-sm-3 text-white mt-4">

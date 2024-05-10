@@ -52,6 +52,7 @@ DataTable.use(ButtonsHtml5);
 import $ from 'jquery';
 import Swal from 'sweetalert2';
 import Cookies from "js-cookie";
+import { formatPrice } from "@/utils/utils.js";
 
 export default {
     components: {
@@ -86,7 +87,16 @@ export default {
             },
             { data: 'totalPrice' },
             { data: 'borrow_date', },
-            { data: 'return_date' },
+            {
+                data: 'return_date',
+                render: function (data, type, row) {
+                    if (new Date(row.return_date) > new Date(row.duration)) {
+                        return '<div class="text-danger fw-bold">' + data + '</div>' + '<div class="text-danger fw-bold">Trễ hạn</div>';
+                    } else {
+                        return data;
+                    }
+                }
+            },
             { data: 'duration' },
             {
                 // cập nhật trạng thái đơn mượn
@@ -163,6 +173,7 @@ export default {
                 .get("http://127.0.0.1:3000/api/borrows")
                 .then((response) => {
                     borrows.value = response.data;
+                    console.log(response.data);
                 })
                 .catch((error) => {
                     console.log(error);
@@ -271,7 +282,8 @@ export default {
             const token = Cookies.get('accessToken');
             if (status == 'Đang mượn') {
                 await getOneBorrow(borrowId);
-                const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', borrow.value.books);
+                const data = [...borrow.value.books]
+                const res = await axios.post('http://127.0.0.1:3000/api/books/checkNumber', data);
                 if (res.status == 200) {
                     await axios.put(`http://127.0.0.1:3000/api/borrows/update/${borrowId}`, { status: status }, {
                         headers: { 'Authorization': 'Bearer ' + token }
@@ -320,22 +332,22 @@ export default {
                     })
                     .catch((error) => {
                         if (error.response && error.response.status === 403) {
-                        Swal.fire({
-                            title: 'Bạn chưa đăng nhập',
-                            text: 'Vui lòng đăng nhập để tiếp tục',
-                            icon: 'warning',
-                            timer: 1500,
-                            showConfirmButton: true,
-                        });
-                    } else if (error.response && error.response.status === 401) {
-                        Swal.fire({
-                            title: 'Phiên xử lý hết hạn',
-                            text: 'Vui lòng đăng nhập để tiếp tục',
-                            icon: 'warning',
-                            timer: 1500,
-                            showConfirmButton: true,
-                        });
-                    }
+                            Swal.fire({
+                                title: 'Bạn chưa đăng nhập',
+                                text: 'Vui lòng đăng nhập để tiếp tục',
+                                icon: 'warning',
+                                timer: 1500,
+                                showConfirmButton: true,
+                            });
+                        } else if (error.response && error.response.status === 401) {
+                            Swal.fire({
+                                title: 'Phiên xử lý hết hạn',
+                                text: 'Vui lòng đăng nhập để tiếp tục',
+                                icon: 'warning',
+                                timer: 1500,
+                                showConfirmButton: true,
+                            });
+                        }
                     })
             }
         }
@@ -379,7 +391,7 @@ export default {
                             <div class="col-12 ">
                                 <span class="fw-bold mt-1">Đơn Giá:</span>
                                 <span class="price text-danger fw-bold"></span>
-                                <span class="text-danger fw-bold">${book.book_price}VNĐ</span>
+                                <span class="text-danger fw-bold">${formattedPrice(book.book_price)}</span>
                             </div>
                             <div class="col-12">
                                 <span class="fw-bold col-4 mt-1">Số Lượng:</span>
@@ -387,7 +399,7 @@ export default {
                                     <div class="col-12">
                                         <input type="text" readonly class="ms-0 col-3 text-center mt-1" value="${book.quantity}"> 
                                         <span class="col-1">=</span>
-                                        <span class="text-danger fw-bold col">${book.quantity * book.book_price}VNĐ</span>
+                                        <span class="text-danger fw-bold col">${formattedPrice(book.quantity * book.book_price)}</span>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -459,6 +471,9 @@ export default {
                 });
         }
 
+        const formattedPrice = (price) => {
+            return formatPrice(price)
+        }
 
         onMounted(() => {
             getBorrows();
@@ -474,7 +489,8 @@ export default {
             updateStatusBorrrow,
             getOneBorrow,
             updateReturnNumberBook,
-            deleteborrow
+            deleteborrow,
+            formattedPrice
         }
     }
 }
