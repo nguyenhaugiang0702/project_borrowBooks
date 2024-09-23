@@ -11,7 +11,6 @@ const publishersRouter = require("./app/routes/publisher.route");
 const cartRouter = require("./app/routes/cart.route");
 const checkoutRouter = require("./app/routes/checkout.route");
 const borrowRouter = require("./app/routes/borrow.route");
-
 app.use(cors());
 app.use(express.json());
 app.use('/app/images/uploads/books/', express.static('app/images/uploads/books/'));
